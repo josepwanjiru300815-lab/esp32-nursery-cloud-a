@@ -1,0 +1,61 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Contacts</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#0f172a;color:white;padding:12px;min-height:100vh;display:flex;flex-direction:column}
+.header{display:flex;align-items:center;gap:10px;padding:8px 0;margin-bottom:15px}
+.back-btn{background:#1e293b;border:2px solid #38bdf8;color:#38bdf8;padding:6px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:bold}
+h1{flex:1;text-align:center;font-size:20px;margin:0;color:#38bdf8}
+.contact-list{display:flex;flex-direction:column;gap:12px;flex:1}
+.contact-item{display:flex;align-items:center;gap:12px;background:#1e293b;border:2px solid #334155;border-radius:12px;padding:14px}
+.contact-photo{width:60px;height:60px;border-radius:50%;background:#0f172a;border:2px solid #38bdf8;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;color:#38bdf8;overflow:hidden}
+.contact-details{flex:1;min-width:0}
+.contact-details h3{margin:0 0 3px 0;font-size:16px;color:white}
+.contact-details p{margin:0 0 2px 0;color:#94a3b8;font-size:12px}
+.phone{color:#4ade80;font-size:13px;text-decoration:none;display:block}
+.email{color:#38bdf8;font-size:12px;text-decoration:none;display:block;word-break:break-all}
+.call-btn{background:#16a34a;color:white;border:none;border-radius:50%;width:44px;height:44px;font-size:20px;text-decoration:none;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.footer-btn{margin-top:auto;padding-top:12px}
+.footer-btn a{display:block;background:#1e293b;border:2px solid #38bdf8;color:#38bdf8;padding:10px;text-align:center;border-radius:8px;text-decoration:none;font-size:14px;font-weight:bold}
+</style></head><body>
+<div class="header">
+  <a href="/" class="back-btn">← Home</a>
+  <h1>CONTACTS</h1>
+</div>
+<div class="contact-list">
+  <div class="contact-item">
+    <div class="contact-photo">JO</div>
+    <div class="contact-details">
+      <h3>Joseph Mwangi</h3>
+      <p>System Developer</p>
+      <a href="tel:+254711000001" class="phone">+254 711 000 001</a>
+      <a href="mailto:joseph.mwangi@example.com" class="email">joseph.mwangi@example.com</a>
+    </div>
+    <a href="tel:+254711000001" class="call-btn">📞</a>
+  </div>
+  <div class="contact-item">
+    <div class="contact-photo">AY</div>
+    <div class="contact-details">
+      <h3>Ayub Gitonga</h3>
+      <p>Supervisor</p>
+      <a href="tel:+254711000002" class="phone">+254 711 000 002</a>
+      <a href="mailto:ayub.gitonga@example.com" class="email">ayub.gitonga@example.com</a>
+    </div>
+    <a href="tel:+254711000002" class="call-btn">📞</a>
+  </div>
+  <div class="contact-item">
+    <div class="contact-photo">MT</div>
+    <div class="contact-details">
+      <h3>Dr Maitethia</h3>
+      <p>Lead Supervisor</p>
+      <a href="tel:+254711000003" class="phone">+254 711 000 003</a>
+      <a href="mailto:drmaitethia@example.com" class="email">drmaitethia@example.com</a>
+    </div>
+    <a href="tel:+254711000003" class="call-btn">📞</a>
+  </div>
+</div>
+<div class="footer-btn">
+  <a href="/beds">← Back to Nursery Beds</a>
+</div>
+</body></html>

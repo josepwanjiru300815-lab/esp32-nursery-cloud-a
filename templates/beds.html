@@ -1,0 +1,38 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Nursery Beds</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#0f172a;color:white;padding:15px}
+.header{display:flex;align-items:center;gap:10px;padding:10px 0;margin-bottom:20px}
+.back-btn{background:#1e293b;border:2px solid #38bdf8;color:#38bdf8;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:bold}
+h1{flex:1;text-align:center;font-size:22px;margin:0;color:#38bdf8}
+.bed-list{display:flex;flex-direction:column;gap:15px}
+.bed-item{display:block;background:#1e293b;border:3px solid #334155;border-radius:15px;padding:25px;text-decoration:none;color:white;transition:.3s}
+.bed-item:hover{border-color:#38bdf8;transform:translateX(8px);box-shadow:0 0 20px rgba(56,189,248,0.4)}
+.bed-item.active{border-color:#16a34a;background:#14532d}
+.bed-item.active:hover{border-color:#4ade80}
+.bed-item h3{margin:0 0 8px 0;font-size:20px;color:#38bdf8}
+.bed-item.active h3{color:#4ade80}
+.bed-item p{color:#94a3b8;font-size:14px;margin:0}
+.status-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px}
+.status-on{background:#16a34a;box-shadow:0 0 8px #16a34a}.status-off{background:#475569}
+</style></head><body>
+<div class="header">
+  <a href="/" class="back-btn">← Home</a>
+  <h1>NURSERY BEDS</h1>
+</div>
+<div class="bed-list">
+  <a href="/nursery1" class="bed-item active">
+    <h3>🌿 Nursery bed 1</h3>
+    <p><span class="status-dot status-on"></span>Active - View variables</p>
+  </a>
+  <div class="bed-item">
+    <h3>🌱 Nursery bed 2</h3>
+    <p><span class="status-dot status-off"></span>Yet to be updated</p>
+  </div>
+  <div class="bed-item">
+    <h3>🌱 Nursery bed 3</h3>
+    <p><span class="status-dot status-off"></span>Yet to be updated</p>
+  </div>
+</div></body></html>
