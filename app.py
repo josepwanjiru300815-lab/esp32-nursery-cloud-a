@@ -121,11 +121,11 @@ def handle_pump_on():
 
 # ----- NEW ESP32 LOG ROUTE - ADD THIS -----
 @app.route('/api/contacts')
-@login_required
+@login_required  
 def get_contacts():
     contacts = [
         {"name": "JOSEPH", "img": url_for('static', filename='joseph.jpg')},
-        {"name": "AYUB", "img": url_for('static', filename='ayug.png')},
+        {"name": "AYUB", "img": url_for('static', filename='ayub.jpg')},      # <- Fixed: ayug.png → ayub.jpg
         {"name": "DR.MAITETHIA", "img": url_for('static', filename='maitethia.jpg')},
     ]
     return jsonify(contacts)
