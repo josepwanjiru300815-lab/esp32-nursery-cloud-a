@@ -101,6 +101,24 @@ h2{
   display:none;
 }
 .error.show{display:block}
+.pass-wrapper{position:relative}
+.pass-wrapper input{padding-right:45px}
+.eye-btn{
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+  background:none;
+  border:none;
+  color:#4ade80;
+  cursor:pointer;
+  font-size:18px;
+  padding:5px;
+  width:auto;
+  margin:0;
+}
+.eye-btn:hover{background:transparent;transform:translateY(-50%) scale(1.1)}
+.eye-btn:active{transform:translateY(-50%) scale(0.95)}
 </style>
 <script>
 function showTab(t){
@@ -109,6 +127,18 @@ function showTab(t){
   document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
   event.target.classList.add('active');
 }
+
+function togglePass(id, btn){
+  const input = document.getElementById(id);
+  if(input.type === 'password'){
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+
 window.onload=function(){
   const params=new URLSearchParams(window.location.search);
   if(params.get('error')=='1')document.getElementById('err').classList.add('show');
@@ -122,7 +152,10 @@ window.onload=function(){
 <button type="button" class="tab" onclick="showTab('admin')">Admin</button>
 </div>
 <input name="username" placeholder="Username" value="nursery" required autocomplete="username">
-<input name="password" type="password" placeholder="Password" required autocomplete="current-password">
+<div class="pass-wrapper">
+  <input name="password" type="password" id="user-pass" placeholder="Password" required autocomplete="current-password">
+  <button type="button" class="eye-btn" onclick="togglePass('user-pass', this)">👁</button>
+</div>
 <button type="submit">LOGIN</button>
 <div id="err" class="error">Invalid username or password</div>
 </form>
@@ -133,7 +166,10 @@ window.onload=function(){
 <button type="button" class="tab active">Admin</button>
 </div>
 <input name="username" placeholder="Admin Username" value="admin" required autocomplete="username">
-<input name="password" type="password" placeholder="Admin Password" required autocomplete="current-password">
+<div class="pass-wrapper">
+  <input name="password" type="password" id="admin-pass" placeholder="Admin Password" required autocomplete="current-password">
+  <button type="button" class="eye-btn" onclick="togglePass('admin-pass', this)">👁</button>
+</div>
 <button type="submit">LOGIN</button>
 </form>
 </div></body></html>
