@@ -112,6 +112,10 @@ def handle_admin():
 def api_status():
     return jsonify(system_state)
 
+@app.route('/contacts')
+@login_required
+def handle_contacts(): 
+    return render_template('contacts.html')
 @app.route('/api/contacts')
 @login_required  
 def get_contacts():
