@@ -1,0 +1,139 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Smart Nursery Login</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow-x:hidden}
+body{
+  background:#09100d;
+  color:#e2e8f0;
+  font-family:Arial,sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:16px;
+  min-height:100vh;
+}
+.login-wrap{
+  width:100%;
+  max-width:340px;
+  margin:auto;
+}
+form{
+  background:#111e17;
+  padding:28px 24px;
+  border-radius:16px;
+  border:2px solid #1e3a2b;
+  width:100%;
+  box-shadow:0 8px 24px rgba(0,0,0,0.6);
+}
+input{
+  width:100%;
+  padding:14px 12px;
+  margin:10px 0;
+  background:#050a08;
+  border:1px solid #1e3a2b;
+  color:#e2e8f0;
+  border-radius:8px;
+  font-size:16px;
+}
+input:focus{
+  outline:none;
+  border-color:#4ade80;
+  box-shadow:0 0 0 2px rgba(74,222,128,0.2);
+}
+button{
+  width:100%;
+  padding:14px;
+  background:#16a34a;
+  border:none;
+  color:white;
+  border-radius:8px;
+  font-weight:bold;
+  font-size:16px;
+  margin-top:12px;
+  cursor:pointer;
+  transition:0.2s;
+}
+button:active{transform:scale(0.98)}
+button:hover{background:#4ade80}
+h2{
+  color:#4ade80;
+  text-align:center;
+  margin:0 0 24px 0;
+  letter-spacing:2px;
+  font-size:22px;
+  text-shadow:0 0 20px rgba(74,222,128,0.3);
+}
+.tabs{
+  display:flex;
+  gap:8px;
+  margin-bottom:20px;
+  background:#050a08;
+  padding:4px;
+  border-radius:8px;
+}
+.tab{
+  flex:1;
+  padding:10px;
+  background:transparent;
+  border:none;
+  color:#4ade80;
+  text-align:center;
+  cursor:pointer;
+  border-radius:6px;
+  font-size:14px;
+  font-weight:bold;
+  transition:0.2s;
+}
+.tab.active{
+  background:#16a34a;
+  color:white;
+}
+.error{
+  color:#dc2626;
+  text-align:center;
+  font-size:13px;
+  margin-top:12px;
+  background:#7f1d1d;
+  padding:8px;
+  border-radius:6px;
+  display:none;
+}
+.error.show{display:block}
+</style>
+<script>
+function showTab(t){
+  document.getElementById('userForm').style.display=t=='user'?'block':'none';
+  document.getElementById('adminForm').style.display=t=='admin'?'block':'none';
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  event.target.classList.add('active');
+}
+window.onload=function(){
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('error')=='1')document.getElementById('err').classList.add('show');
+}
+</script></head><body>
+<div class="login-wrap">
+<form id="userForm" method="POST" action="/login/user">
+<h2>SMART NURSERY BED WATERING SYSTEM</h2>
+<div class="tabs">
+<button type="button" class="tab active" onclick="showTab('user')">User</button>
+<button type="button" class="tab" onclick="showTab('admin')">Admin</button>
+</div>
+<input name="username" placeholder="Username" value="nursery" required autocomplete="username">
+<input name="password" type="password" placeholder="Password" required autocomplete="current-password">
+<button type="submit">LOGIN</button>
+<div id="err" class="error">Invalid username or password</div>
+</form>
+<form id="adminForm" method="POST" action="/login/admin" style="display:none">
+<h2>ADMIN ACCESS</h2>
+<div class="tabs">
+<button type="button" class="tab" onclick="showTab('user')">User</button>
+<button type="button" class="tab active">Admin</button>
+</div>
+<input name="username" placeholder="Admin Username" value="admin" required autocomplete="username">
+<input name="password" type="password" placeholder="Admin Password" required autocomplete="current-password">
+<button type="submit">LOGIN</button>
+</form>
+</div></body></html>
