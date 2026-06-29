@@ -22,8 +22,8 @@ command_buffer = {
 
 # Simple user storage - replace with DB in production
 users = {
-    "nursery": "nursery123",  # username: password
-    "admin": "admin123"
+    "nursery": "12345678",  # username: password
+    "admin": "12345678"
 }
 
 # Security log - replace with DB in production
