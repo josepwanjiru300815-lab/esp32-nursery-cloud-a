@@ -124,9 +124,9 @@ def handle_pump_on():
 @login_required
 def get_contacts():
     contacts = [
-        {"name": "John Nursery", "img": url_for('static', filename='john.jpg')},
-        {"name": "Jane Admin", "img": url_for('static', filename='jane.png')},
-        {"name": "ESP32 Device", "img": url_for('static', filename='admin.jpg')},
+        {"name": "JOSEPH", "img": url_for('static', filename='joseph.jpg')},
+        {"name": "AYUB", "img": url_for('static', filename='ayug.png')},
+        {"name": "DR.MAITETHIA", "img": url_for('static', filename='maitethia.jpg')},
     ]
     return jsonify(contacts)
 @app.route('/esp32/log', methods=['POST'])
