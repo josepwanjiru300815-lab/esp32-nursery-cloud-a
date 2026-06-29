@@ -3,16 +3,17 @@
 <title>About Project</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;background:#0f172a;color:white;padding:15px;min-height:100vh}
-.header{display:flex;align-items:center;gap:10px;padding:10px 0;margin-bottom:20px;position:sticky;top:0;background:#0f172a;z-index:10}
-.back-btn{background:#1e293b;border:2px solid #38bdf8;color:#38bdf8;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:bold}
-h1{flex:1;text-align:center;font-size:22px;margin:0;color:#38bdf8}
-.content{background:#1e293b;border:3px solid #334155;border-radius:15px;padding:25px;margin-top:20px;margin-bottom:20px}
-.content h2{color:#38bdf8;font-size:20px;margin:0 0 18px 0;text-align:center}
+body{font-family:Arial,sans-serif;background:#09100d;color:white;padding:15px;min-height:100vh}
+.header{display:flex;align-items:center;gap:10px;padding:10px 0;margin-bottom:20px;position:sticky;top:0;background:#09100d;z-index:10}
+.back-btn{background:#111e17;border:2px solid #1e3a2b;color:#4ade80;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:bold;transition:0.2s}
+.back-btn:hover{background:#4ade80;color:#09100d}
+h1{flex:1;text-align:center;font-size:22px;margin:0;color:#4ade80;letter-spacing:1px}
+.content{background:#111e17;border:2px solid #1e3a2b;border-radius:15px;padding:25px;margin-top:20px;margin-bottom:20px}
+.content h2{color:#4ade80;font-size:20px;margin:0 0 18px 0;text-align:center}
 .content p{color:#cbd5e1;font-size:15px;line-height:1.7;margin-bottom:12px;text-align:left}
 .content ul{color:#cbd5e1;font-size:15px;line-height:1.8;margin-left:20px}
 .content li{margin-bottom:8px}
-.diagram{width:100%;height:auto;margin:20px auto 0 auto;display:block;border-radius:10px;border:2px solid #334155;box-shadow:0 0 20px rgba(56,189,248,0.3)}
+.diagram{width:100%;height:auto;margin:20px auto 0 auto;display:block;border-radius:10px;border:2px solid #1e3a2b;box-shadow:0 0 20px rgba(74,222,128,0.2)}
 </style></head><body>
 <div class="header">
   <a href="/" class="back-btn">← Home</a>
@@ -26,5 +27,6 @@ h1{flex:1;text-align:center;font-size:22px;margin:0;color:#38bdf8}
     <li>Control the system remotely</li>
     <li>View real-time information about the conditions in the nursery beds</li>
   </ul>
+  <img src="/img/jay.jpg" alt="IoT Smart Nursery System Diagram" class="diagram" onerror="this.style.display='none';">
 </div>
 </body></html>
