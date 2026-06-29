@@ -120,6 +120,15 @@ def handle_pump_on():
 # ... keep all your other /api routes ...
 
 # ----- NEW ESP32 LOG ROUTE - ADD THIS -----
+@app.route('/api/contacts')
+@login_required
+def get_contacts():
+    contacts = [
+        {"name": "John Nursery", "img": url_for('static', filename='john.jpg')},
+        {"name": "Jane Admin", "img": url_for('static', filename='jane.png')},
+        {"name": "ESP32 Device", "img": url_for('static', filename='admin.jpg')},
+    ]
+    return jsonify(contacts)
 @app.route('/esp32/log', methods=['POST'])
 def esp32_log():
     try:
