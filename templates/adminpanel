@@ -48,11 +48,10 @@ button.danger:hover{background:#ef4444}
   <div class="log-section">
     <h2>Security Log</h2>
     <div class="log" id="logContainer">
-      <!-- Log entries will be populated by your backend -->
-      <div class="log-entry">[2026-06-29 14:32:15] User login: nursery</div>
-      <div class="log-entry success">[2026-06-29 14:35:22] Pump ON command executed</div>
-      <div class="log-entry warning">[2026-06-29 14:40:11] Soil sensor 1: Low moisture detected</div>
-      <div class="log-entry error">[2026-06-29 14:42:05] Failed login attempt from IP 192.168.1.45</div>
+      <!-- Your backend will populate security logs here -->
+      <!-- Example: -->
+      <!-- <div class="log-entry">[2026-06-29 14:32:15] User login: nursery</div> -->
+      <!-- <div class="log-entry success">[2026-06-29 14:35:22] Pump ON command executed</div> -->
     </div>
   </div>
 </div>
