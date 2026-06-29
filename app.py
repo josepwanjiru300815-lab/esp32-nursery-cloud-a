@@ -7,7 +7,7 @@ import os
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 
-# System State Memory Cache - keep your existing stuff
+# System State Memory Cache
 system_state = {
     "pump": "OFF", "valve": "STOPPED",
     "volume": 0.0, "percent": 0.0,
@@ -23,7 +23,6 @@ users = {
     "admin": os.environ.get("ADMIN_PASSWORD", "admin123")
 }
 
-# Security log - stores last 100 entries
 security_log = []
 
 def add_log(msg, level="info"):
@@ -57,7 +56,6 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ----- YOUR EXISTING ROUTES - KEEP ALL THESE -----
 @app.route('/')
 def handle_root(): 
     return render_template('login.html')
@@ -100,35 +98,30 @@ def handle_logout():
 def handle_home(): 
     return render_template('home.html')
 
+@app.route('/contact')
+@login_required
+def handle_contact(): 
+    return render_template('contact.html')
+
 @app.route('/admin')
 @admin_required
 def handle_admin():
     return render_template('admin.html', logs=security_log)
 
-# ----- YOUR API ROUTES - KEEP THESE TOO -----
 @app.route('/api/status')
 def api_status():
     return jsonify(system_state)
 
-@app.route('/api/pump/on')
-@login_required
-def handle_pump_on():
-    command_buffer["pump"] = "ON"
-    add_log(f"Pump ON command by {session.get('user')}", "warning")
-    return redirect('/nursery1')
-
-# ... keep all your other /api routes ...
-
-# ----- NEW ESP32 LOG ROUTE - ADD THIS -----
 @app.route('/api/contacts')
 @login_required  
 def get_contacts():
     contacts = [
-        {"name": "JOSEPH", "img": url_for('static', filename='joseph.jpg')},
-        {"name": "AYUB", "img": url_for('static', filename='ayub.jpg')},      # <- Fixed: ayug.png → ayub.jpg
-        {"name": "DR.MAITETHIA", "img": url_for('static', filename='maitethia.jpg')},
+        {"name": "JOSEPH", "img": url_for('static', filename='joseph.jpg'), "role": "Developer", "phone": "+254700000001"},
+        {"name": "AYUB", "img": url_for('static', filename='ayub.jpg'), "role": "Supervisor", "phone": "+254700000002"},
+        {"name": "DR.MAITETHIA", "img": url_for('static', filename='maitethia.jpg'), "role": "Lead Supervisor", "phone": "+254700000003"},
     ]
     return jsonify(contacts)
+
 @app.route('/esp32/log', methods=['POST'])
 def esp32_log():
     try:
