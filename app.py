@@ -1,14 +1,31 @@
-from flask import Flask, render_template, request, jsonify, redirect, session, url_for
-from functools import wraps
+import os
 import secrets
 from datetime import datetime
-import os
+from functools import wraps
+from flask import Flask, render_template, request, jsonify, redirect, session, url_for
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(16))
 
+# Connect to your Neon Database
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
-# System State Memory Cache
+# Create a Database Table for Logs
+class SecurityLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    time = db.Column(db.String(50), nullable=False)
+    msg = db.Column(db.String(255), nullable=False)
+    level = db.Column(db.String(20), nullable=False)
+    ip = db.Column(db.String(50), nullable=False)
+
+# Automatically create the table on startup
+with app.app_context():
+    db.create_all()
+
+# System State Memory Cache (Live dashboard controls)
 system_state = {
     "pump": "OFF", "valve": "STOPPED",
     "volume": 0.0, "percent": 0.0,
@@ -24,20 +41,17 @@ users = {
     "admin": os.environ.get("ADMIN_PASSWORD", "admin123")
 }
 
-security_log = []
-
 def add_log(msg, level="info"):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     ip = request.remote_addr if request else "System"
-    entry = {
-        "time": timestamp,
-        "msg": msg,
-        "level": level,
-        "ip": ip
-    }
-    security_log.insert(0, entry)
-    if len(security_log) > 100: 
-        security_log.pop()
+    
+    # Save the log directly inside the online database
+    try:
+        new_log = SecurityLog(time=timestamp, msg=msg, level=level, ip=ip)
+        db.session.add(new_log)
+        db.session.commit()
+    except Exception as e:
+        print(f"Database log error: {e}")
 
 def login_required(f):
     @wraps(f)
@@ -107,7 +121,15 @@ def handle_contact():
 @app.route('/admin')
 @admin_required
 def handle_admin():
-    return render_template('admin.html', logs=security_log)
+    # Read the logs from the database, newest first, limit to latest 100
+    try:
+        db_logs = SecurityLog.query.order_by(SecurityLog.id.desc()).limit(100).all()
+        # Convert database objects to standard dictionary format for your HTML template
+        security_log_list = [{"time": l.time, "msg": l.msg, "level": l.level, "ip": l.ip} for l in db_logs]
+    except Exception as e:
+        security_log_list = [{"time": "-", "msg": f"Log error: {e}", "level": "error", "ip": "-"}]
+        
+    return render_template('admin.html', logs=security_log_list)
 
 @app.route('/api/status')
 def api_status():
@@ -117,6 +139,7 @@ def api_status():
 @login_required
 def handle_contacts(): 
     return render_template('contacts.html')
+
 @app.route('/api/contacts')
 @login_required  
 def get_contacts():
