@@ -169,48 +169,51 @@ def get_contacts():
     ]
     return jsonify(contacts)
 
+# FIXED: Single unified route - handles both login events and sensor data
 @app.route('/esp32/log', methods=['POST'])
 def esp32_log():
     data = request.get_json()
     if not data:
         return jsonify({"error": "No JSON"}), 400
 
-    username = data.get('user', 'unknown')
-    success = data.get('success', False)
-
     # Get real IP - works on Vercel
     esp_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-    if ',' in esp_ip:
+    if esp_ip and ',' in esp_ip:
         esp_ip = esp_ip.split(',')[0].strip()
 
-    # Log it using your existing add_log function
-    if success:
-        add_log(f"ESP32 login success: {username} from ESP32 {esp_ip}", "success")
-    else:
-        add_log(f"ESP32 login failed: {username} from ESP32 {esp_ip}", "error")
-
-    return jsonify({"status": "ok"}), 200
-@app.route('/esp32/log', methods=['POST'])
-def esp32_log():
-    try:
-        data = request.get_json()
-        if not data:
-            return "No data", 400
-
+    # Case 1: Login event from ESP32 sendLogToVercel()
+    if 'user' in data and 'success' in data:
         username = data.get('user', 'unknown')
         success = data.get('success', False)
-        esp_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-        if esp_ip and ',' in esp_ip:
-            esp_ip = esp_ip.split(',')[0].strip()
 
         if success:
             add_log(f"ESP32 login success: {username} from ESP32 {esp_ip}", "success")
         else:
             add_log(f"ESP32 login failed: {username} from ESP32 {esp_ip}", "error")
 
-        return jsonify({"status": "ok"}), 200
-    except Exception as e:
-        return str(e), 500
+        return jsonify({"status": "logged"}), 200
+
+    # Case 2: Sensor data from ESP32 cloud_update()
+    if 'temp' in data:
+        system_state.update({
+            "pump": data.get('pump', 'OFF'),
+            "valve": data.get('valve', 'STOPPED'),
+            "temp": data.get('temp', 0.0),
+            "hum": data.get('hum', 0.0),
+            "soil1": data.get('soil1', 0.0),
+            "soil2": data.get('soil2', 0.0),
+            "fault1": data.get('fault1', False),
+            "fault2": data.get('fault2', False),
+            "percent": data.get('percent', 0.0),
+            "volume": data.get('volume', 0.0)
+        })
+        # Send back commands to ESP32
+        return jsonify({
+            "pump": command_buffer["pump"],
+            "valve": command_buffer["valve"]
+        }), 200
+
+    return jsonify({"status": "ok"}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
