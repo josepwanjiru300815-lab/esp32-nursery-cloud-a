@@ -18,8 +18,12 @@ button{padding:10px 20px;background:#16a34a;border:none;color:white;border-radiu
 button:hover{background:#4ade80}
 button.danger{background:#dc2626}
 button.danger:hover{background:#ef4444}
+button.secondary{background:#1e293b;border:1px solid #38bdf8;color:#38bdf8}
+button.secondary:hover{background:#38bdf8;color:#090d16}
 .log-section{margin-top:20px}
-.log-section h2{color:#38bdf8;font-size:18px;margin-bottom:12px}
+.log-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.log-section h2{color:#38bdf8;font-size:18px;margin:0}
+.log-controls{display:flex;gap:8px}
 .log{background:#111827;padding:15px;border:1px solid #1f2937;border-radius:8px;font-family:monospace;font-size:12px;max-height:400px;overflow-y:auto;line-height:1.6}
 .log-entry{margin-bottom:4px;color:#9ca3af}
 .log-entry.error{color:#ef4444}
@@ -47,7 +51,13 @@ button.danger:hover{background:#ef4444}
   </form>
 
   <div class="log-section">
-    <h2>Security Log</h2>
+    <div class="log-header">
+      <h2>Security Log</h2>
+      <div class="log-controls">
+        <button id="pauseBtn" class="secondary" onclick="togglePause()">Pause</button>
+        <button class="secondary" onclick="loadLogs()">Refresh</button>
+      </div>
+    </div>
     <div class="log" id="logContainer">
       <div class="log-entry">Loading logs...</div>
     </div>
@@ -55,12 +65,34 @@ button.danger:hover{background:#ef4444}
 </div>
 
 <script>
+let isPaused = false;
+let refreshInterval;
+
+function togglePause() {
+  isPaused = !isPaused;
+  document.getElementById('pauseBtn').innerText = isPaused ? 'Resume' : 'Pause';
+  if (isPaused) {
+    clearInterval(refreshInterval);
+  } else {
+    startRefresh();
+  }
+}
+
+function startRefresh() {
+  refreshInterval = setInterval(loadLogs, 3000);
+}
+
 async function loadLogs() {
+  if (isPaused) return;
+  
   try {
+    const container = document.getElementById('logContainer');
+    // Check if user was at bottom before update
+    const wasAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 5;
+    
     const res = await fetch('/api/logs');
     if (!res.ok) throw new Error('Failed to fetch');
     const data = await res.json();
-    const container = document.getElementById('logContainer');
 
     if (data.length) {
       container.innerHTML = data.map(log =>
@@ -68,7 +100,11 @@ async function loadLogs() {
           [${log.time}] ${log.msg} (IP: ${log.ip})
         </div>`
       ).join('');
-      container.scrollTop = container.scrollHeight;
+      
+      // Only auto-scroll if user was already at bottom
+      if (wasAtBottom) {
+        container.scrollTop = container.scrollHeight;
+      }
     } else {
       container.innerHTML = '<div class="log-entry">No security logs recorded yet.</div>';
     }
@@ -77,7 +113,17 @@ async function loadLogs() {
       `<div class="log-entry error">Error loading logs: ${e.message}</div>`;
   }
 }
-setInterval(loadLogs, 3000);
+
+// Hover to pause auto-refresh
+const logContainer = document.getElementById('logContainer');
+logContainer.addEventListener('mouseenter', () => {
+  if (!isPaused) clearInterval(refreshInterval);
+});
+logContainer.addEventListener('mouseleave', () => {
+  if (!isPaused) startRefresh();
+});
+
 loadLogs();
+startRefresh();
 </script>
 </body></html>
