@@ -1,6 +1,7 @@
 import os
 import secrets
 from datetime import datetime
+from zoneinfo import ZoneInfo # Python 3.9+ built-in
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, redirect, session, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -12,6 +13,13 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(16))
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+# Kenya timezone
+KENYA_TZ = ZoneInfo("Africa/Nairobi")
+
+def get_kenya_time():
+    """Returns current Kenya time as string"""
+    return datetime.now(KENYA_TZ).strftime("%Y-%m-%d %H:%M:%S")
 
 # Database Table for Logs
 class SecurityLog(db.Model):
@@ -37,11 +45,11 @@ users = {
     "admin": os.environ.get("ADMIN_PASSWORD", "12345678")
 }
 
-def add_log(msg, level="info"):
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+def add_log(msg, level="info", custom_time=None):
+    """Add log with Kenya time. Use custom_time if ESP32 provides it."""
+    timestamp = custom_time if custom_time else get_kenya_time()
     ip = "System"
     if request:
-        # Vercel uses X-Forwarded-For header
         ip = request.headers.get('X-Forwarded-For', request.remote_addr)
         if ip and ',' in ip:
             ip = ip.split(',')[0].strip()
@@ -86,9 +94,9 @@ def handle_login_user():
     password = request.form.get('password')
     if users.get(username) == password and username == 'nursery':
         session['user'] = username
-        add_log(f"User login success: {username}", "success")
+        add_log(f"Vercel user login success: {username}", "success")
         return redirect('/home')
-    add_log(f"Failed user login: {username}", "error")
+    add_log(f"Failed Vercel user login: {username}", "error")
     return redirect('/?error=1')
 
 @app.route('/login/admin', methods=['POST'])
@@ -97,9 +105,9 @@ def handle_login_admin():
     password = request.form.get('password')
     if users.get(username) == password and username == 'admin':
         session['user'] = username
-        add_log(f"Admin login success: {username}", "success")
+        add_log(f"Vercel admin login success: {username}", "success")
         return redirect('/admin')
-    add_log(f"Failed admin login: {username}", "error")
+    add_log(f"Failed Vercel admin login: {username}", "error")
     return redirect('/?error=1')
 
 @app.route('/logout')
@@ -181,15 +189,16 @@ def esp32_log():
     if esp_ip and ',' in esp_ip:
         esp_ip = esp_ip.split(',')[0].strip()
 
-    # Case 1: Login event from ESP32 sendLogToVercel()
+    # Case 1: Login event from ESP32 sendLogToVercel() - ESP32 now sends "time"
     if 'user' in data and 'success' in data:
         username = data.get('user', 'unknown')
         success = data.get('success', False)
+        esp_time = data.get('time') # <-- Use ESP32's Kenya time
 
         if success:
-            add_log(f"ESP32 login success: {username} from ESP32 {esp_ip}", "success")
+            add_log(f"ESP32 login success: {username} from {esp_ip}", "success", custom_time=esp_time)
         else:
-            add_log(f"ESP32 login failed: {username} from ESP32 {esp_ip}", "error")
+            add_log(f"ESP32 login failed: {username} from {esp_ip}", "error", custom_time=esp_time)
 
         return jsonify({"status": "logged"}), 200
 
