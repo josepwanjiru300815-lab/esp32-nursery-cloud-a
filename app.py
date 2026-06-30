@@ -33,8 +33,8 @@ system_state = {
 command_buffer = {"pump": "OFF", "valve": "STOPPED"}
 
 users = {
-    "nursery": os.environ.get("USER_PASSWORD", "nursery123"),
-    "admin": os.environ.get("ADMIN_PASSWORD", "admin123")
+    "nursery": os.environ.get("USER_PASSWORD", "12345678"),
+    "admin": os.environ.get("ADMIN_PASSWORD", "12345678")
 }
 
 def add_log(msg, level="info"):
