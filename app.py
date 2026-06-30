@@ -171,6 +171,27 @@ def get_contacts():
 
 @app.route('/esp32/log', methods=['POST'])
 def esp32_log():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No JSON"}), 400
+
+    username = data.get('user', 'unknown')
+    success = data.get('success', False)
+
+    # Get real IP - works on Vercel
+    esp_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if ',' in esp_ip:
+        esp_ip = esp_ip.split(',')[0].strip()
+
+    # Log it using your existing add_log function
+    if success:
+        add_log(f"ESP32 login success: {username} from ESP32 {esp_ip}", "success")
+    else:
+        add_log(f"ESP32 login failed: {username} from ESP32 {esp_ip}", "error")
+
+    return jsonify({"status": "ok"}), 200
+@app.route('/esp32/log', methods=['POST'])
+def esp32_log():
     try:
         data = request.get_json()
         if not data:
