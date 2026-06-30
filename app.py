@@ -5,7 +5,8 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
-app.secret_key = secrets.token_hex(16)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(16))
+
 
 # System State Memory Cache
 system_state = {
