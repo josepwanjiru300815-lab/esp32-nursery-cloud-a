@@ -103,7 +103,9 @@ def handle_login_user():
         return redirect('/home')
     add_log(f"Failed Vercel user login: {username}", "error")
     return redirect('/?error=1')
-
+@app.route('/test')
+def test_route():
+    return "TEST WORKS - Routes are loading"
 @app.route('/login/admin', methods=['POST'])
 def handle_login_admin():
     username = request.form.get('username')
