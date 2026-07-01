@@ -7,46 +7,46 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: Arial, sans-serif; background: #09100d; color: #e2e8f0; padding: 12px; font-size: 13px; min-height:100vh; }
-       .header { display: flex; align-items: center; gap: 8px; padding: 4px 0; margin-bottom: 10px; position:sticky; top:0; background:#09100d; z-index:10; }
-       .back-btn { background: #111e17; border: 2px solid #1e3a2b; color: #4ade80; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold; transition:0.2s; }
-       .back-btn:hover{background:#4ade80;color:#09100d}
+      .header { display: flex; align-items: center; gap: 8px; padding: 4px 0; margin-bottom: 10px; position:sticky; top:0; background:#09100d; z-index:10; }
+      .back-btn { background: #111e17; border: 2px solid #1e3a2b; color: #4ade80; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold; transition:0.2s; }
+      .back-btn:hover{background:#4ade80;color:#09100d}
         h1 { flex: 1; text-align: center; font-size: 18px; margin: 0; color: #4ade80; letter-spacing:1px; }
-       .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-width: 600px; margin: 0 auto; }
-       .card { background: #111e17; border-radius: 10px; padding: 12px; border: 2px solid #1e3a2b; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
-       .card h2 { text-align: center; margin: 0 0 6px 0; font-size: 12px; color: #86efac; letter-spacing: 1px; }
-       .value { font-size: 22px; text-align: center; font-weight: bold; margin: 4px 0; color: #38bdf8; }
-       .sub { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 2px; }
-       .btn-group { display: flex; justify-content: space-between; gap: 6px; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-width: 600px; margin: 0 auto; }
+      .card { background: #111e17; border-radius: 10px; padding: 12px; border: 2px solid #1e3a2b; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+      .card h2 { text-align: center; margin: 0 0 6px 0; font-size: 12px; color: #86efac; letter-spacing: 1px; }
+      .value { font-size: 22px; text-align: center; font-weight: bold; margin: 4px 0; color: #38bdf8; }
+      .sub { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 2px; }
+      .btn-group { display: flex; justify-content: space-between; gap: 6px; }
         a { text-decoration: none; display: inline-block; width: 48%; }
         a.fullwidth { width: 100%; margin-top: 4px; }
         button { padding: 8px 4px; margin: 2px 0; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor:pointer; width: 100%; display: block; transition: 0.2s; }
         button:active { transform: scale(0.97); }
-       .on { background: #16a34a; color: white; }
-       .on:hover{background:#22c55e}
-       .off { background: #c2410c; color: white; }
-       .off:hover{background:#ea580c}
-       .stop { background: #475569; color: white; }
-       .stop:hover{background:#64748b}
-       .badge { display: inline-block; padding: 3px 10px; border-radius: 15px; font-weight: bold; font-size: 10px; margin: 2px auto; display: table; text-align: center; }
-       .badge-on,.badge-opened { background: #16a34a; color: white; box-shadow: 0 0 10px rgba(22,163,74,0.4); }
-       .badge-off,.badge-closed { background: #c2410c; color: white; }
-       .badge-opening,.badge-closing { background: #0284c7; color: white; animation: pulse 1s infinite alternate; }
-       .badge-stopped { background: #475569; color: white; }
-       .tank-section { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 4px; }
-       .tank-wrapper { position: relative; width: 70px; height: 110px; border: 3px solid #475569; border-top: none; border-radius: 0 0 12px 12px; overflow: hidden; background: #050a08; }
-       .water { position: absolute; bottom: 0; width: 100%; background: linear-gradient(180deg, #38bdf8 0%, #1d4ed8 100%); transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
-       .tank-grid { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
-       .grid-line { width: 100%; border-top: 1px dashed rgba(255,255,255,0.15); }
-       .grid-line.boundary { border-top: none; }
-       .labels-column { display: flex; flex-direction: column; justify-content: space-between; height: 110px; font-size: 9px; font-weight: bold; color: #64748b; }
-       .volume-display { margin-top: 8px; background: #050a08; padding: 6px; border-radius: 6px; border: 1px solid #1e3a2b; text-align: center; }
-       .volume-label { font-size: 9px; color: #64748b; }
-       .volume-value { font-size: 16px; font-weight: bold; color: #38bdf8; }
-       .bar-bg { background: #1e3a2b; border-radius: 6px; height: 8px; margin: 4px 0; overflow: hidden; border: 1px solid #050a08; }
-       .bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s ease; background: linear-gradient(90deg, #ea580c, #22c55e); }
-       .fault-overlay { background: #7f1d1d; border: 1px solid #dc2626; border-radius: 6px; padding: 4px; text-align: center; color: #fca5a5; font-weight: bold; font-size: 10px; display: none; margin-top: 4px; }
+      .on { background: #16a34a; color: white; }
+      .on:hover{background:#22c55e}
+      .off { background: #c2410c; color: white; }
+      .off:hover{background:#ea580c}
+      .stop { background: #475569; color: white; }
+      .stop:hover{background:#64748b}
+      .badge { display: inline-block; padding: 3px 10px; border-radius: 15px; font-weight: bold; font-size: 10px; margin: 2px auto; display: table; text-align: center; }
+      .badge-on,.badge-opened { background: #16a34a; color: white; box-shadow: 0 0 10px rgba(22,163,74,0.4); }
+      .badge-off,.badge-closed { background: #c2410c; color: white; }
+      .badge-opening,.badge-closing { background: #0284c7; color: white; animation: pulse 1s infinite alternate; }
+      .badge-stopped { background: #475569; color: white; }
+      .tank-section { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 4px; }
+      .tank-wrapper { position: relative; width: 70px; height: 110px; border: 3px solid #475569; border-top: none; border-radius: 0 0 12px 12px; overflow: hidden; background: #050a08; }
+      .water { position: absolute; bottom: 0; width: 100%; background: linear-gradient(180deg, #38bdf8 0%, #1d4ed8 100%); transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+      .tank-grid { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
+      .grid-line { width: 100%; border-top: 1px dashed rgba(255,255,255,0.15); }
+      .grid-line.boundary { border-top: none; }
+      .labels-column { display: flex; flex-direction: column; justify-content: space-between; height: 110px; font-size: 9px; font-weight: bold; color: #64748b; }
+      .volume-display { margin-top: 8px; background: #050a08; padding: 6px; border-radius: 6px; border: 1px solid #1e3a2b; text-align: center; }
+      .volume-label { font-size: 9px; color: #64748b; }
+      .volume-value { font-size: 16px; font-weight: bold; color: #38bdf8; }
+      .bar-bg { background: #1e3a2b; border-radius: 6px; height: 8px; margin: 4px 0; overflow: hidden; border: 1px solid #050a08; }
+      .bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s ease; background: linear-gradient(90deg, #ea580c, #22c55e); }
+      .fault-overlay { background: #7f1d1d; border: 1px solid #dc2626; border-radius: 6px; padding: 4px; text-align: center; color: #fca5a5; font-weight: bold; font-size: 10px; display: none; margin-top: 4px; }
         @keyframes pulse { from { opacity: 0.6; } to { opacity: 1; } }
-       .fullwidth{grid-column:1/-1}
+      .fullwidth{grid-column:1/-1}
     </style>
     <script>
         function badgeClass(val){
@@ -64,7 +64,7 @@
             }
         }
         function updateStatus(){
-            fetch('/api/status').then(r=>r.json()).then(d=>{
+            fetch('/status').then(r=>r.json()).then(d=>{ // CHANGED: removed /api
                 const ps=document.getElementById('pumpStatus'); ps.innerText=d.pump; ps.className=badgeClass(d.pump);
                 const vs=document.getElementById('valveStatus'); vs.innerText=d.valve; vs.className=badgeClass(d.valve);
                 document.getElementById('water').style.height=d.percent+'%';
@@ -91,13 +91,13 @@
         <div class="card">
             <h2>PUMP</h2>
             <div class="value"><span id="pumpStatus" class="badge badge-off">OFF</span></div>
-            <div class="btn-group"><a href="/api/pump/on"><button class="on">ON</button></a><a href="/api/pump/off"><button class="off">OFF</button></a></div>
+            <div class="btn-group"><a href="/pump/on"><button class="on">ON</button></a><a href="/pump/off"><button class="off">OFF</button></a></div>
         </div>
         <div class="card">
             <h2>VALVE</h2>
             <div class="value"><span id="valveStatus" class="badge badge-stopped">STOPPED</span></div>
-            <div class="btn-group"><a href="/api/valve/open"><button class="on">OPEN</button></a><a href="/api/valve/close"><button class="off">CLOSE</button></a></div>
-            <div class="btn-group"><a href="/api/valve/stop" class="fullwidth"><button class="stop">STOP</button></a></div>
+            <div class="btn-group"><a href="/valve/open"><button class="on">OPEN</button></a><a href="/valve/close"><button class="off">CLOSE</button></a></div>
+            <div class="btn-group"><a href="/valve/stop" class="fullwidth"><button class="stop">STOP</button></a></div>
         </div>
         <div class="card"><h2>TEMP</h2><div class="value" id="temp">--°C</div><p class="sub" id="tempStatus">--</p></div>
         <div class="card"><h2>HUMIDITY</h2><div class="value" id="hum">--%</div><p class="sub" id="humStatus">--</p></div>
