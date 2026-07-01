@@ -224,39 +224,35 @@ def get_contacts():
     return jsonify(contacts)
 
 # ========== PUMP/VALVE CONTROL ROUTES - ADDED FOR ESP32 COMPATIBILITY ==========
+# ========== PUMP/VALVE CONTROL ROUTES - TESTING WITHOUT LOGIN ==========
 @app.route('/pump/on')
-@login_required
 def pump_on():
     command_buffer["pump"] = "ON"
-    add_log("Pump turned ON via web", "info")
+    # add_log("Pump turned ON via web", "info")  # COMMENT OUT FOR NOW
     return redirect('/nursery1')
 
 @app.route('/pump/off')
-@login_required
 def pump_off():
     command_buffer["pump"] = "OFF"
-    add_log("Pump turned OFF via web", "info")
+    # add_log("Pump turned OFF via web", "info")  # COMMENT OUT FOR NOW
     return redirect('/nursery1')
 
 @app.route('/valve/open')
-@login_required
 def valve_open():
     command_buffer["valve"] = "OPENING"
-    add_log("Valve opening via web", "info")
+    # add_log("Valve opening via web", "info")  # COMMENT OUT FOR NOW
     return redirect('/nursery1')
 
 @app.route('/valve/close')
-@login_required
 def valve_close():
     command_buffer["valve"] = "CLOSING"
-    add_log("Valve closing via web", "info")
+    # add_log("Valve closing via web", "info")  # COMMENT OUT FOR NOW
     return redirect('/nursery1')
 
 @app.route('/valve/stop')
-@login_required
 def valve_stop():
     command_buffer["valve"] = "STOPPED"
-    add_log("Valve stopped via web", "info")
+    # add_log("Valve stopped via web", "info")  # COMMENT OUT FOR NOW
     return redirect('/nursery1')
 
 # ========== ESP32 INTEGRATION ==========
