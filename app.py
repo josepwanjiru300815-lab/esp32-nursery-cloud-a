@@ -1,7 +1,7 @@
 import os
 import secrets
 from datetime import datetime
-from zoneinfo import ZoneInfo # Python 3.9+ built-in
+import pytz # Use pytz instead of zoneinfo
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, redirect, session, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -14,8 +14,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Kenya timezone
-KENYA_TZ = ZoneInfo("Africa/Nairobi")
+# Kenya timezone using pytz
+KENYA_TZ = pytz.timezone("Africa/Nairobi")
 
 def get_kenya_time():
     """Returns current Kenya time as string"""
