@@ -1,142 +1,162 @@
-from flask import Flask, request, jsonify, render_template_string
-import json
-from datetime import datetime
+#include "cloud.h"
+#include "pump.h"
+#include "valve.h"
+#include "dht_sensor.h"
+#include "soil_sensor.h"
+#include "water_tank.h"
 
-app = Flask(__name__)
+#pragma GCC optimize ("Os")
 
-# Global state
-system_state = {
-    "pump": "OFF",
-    "valve": "STOPPED",
-    "temp": 0,
-    "hum": 0,
-    "soil1": 0,
-    "soil2": 0,
-    "fault1": False,
-    "fault2": False,
-    "percent": 0,
-    "volume": 0,
-    "last_update": "Never"
+std::vector<OfflineLog> offlineLogs;
+
+void setupTime() {
+    configTime(10800, 0, "pool.ntp.org", "time.nist.gov"); // 10800 = GMT+3 for Kenya
+    Serial.print("Waiting for NTP time sync");
+    time_t now = time(nullptr);
+    int retries = 0;
+    while (now < 24 * 3600 && retries < 20) {
+        delay(500);
+        Serial.print(".");
+        now = time(nullptr);
+        retries++;
+    }
+    Serial.println("");
+    if (now > 24 * 3600) {
+        struct tm timeinfo;
+        localtime_r(&now, &timeinfo);
+        char buf[25];
+        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &timeinfo);
+        Serial.printf("Current Kenya time: %s\n", buf);
+    } else {
+        Serial.println("Time sync failed - using millis");
+    }
 }
 
-# Command buffer - cleared after sending to ESP32
-command_buffer = {
-    "pump": "OFF",
-    "valve": "STOPPED"
+String getTimeString() {
+    time_t now = time(nullptr);
+    if (now < 24 * 3600) return "NoTime";
+    struct tm timeinfo;
+    localtime_r(&now, &timeinfo);
+    char buf[20];
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &timeinfo);
+    return String(buf);
 }
 
-@app.route("/")
-def dashboard():
-    return render_template_string("""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>ESP32 Nursery</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            body { font-family: Arial; margin: 20px; }
-            .card { background: #f0f0f0; padding: 15px; margin: 10px 0; border-radius: 8px; }
-            button { padding: 10px 20px; margin: 5px; font-size: 16px; }
-            .on { background: #4CAF50; color: white; }
-            .off { background: #f44336; color: white; }
-        </style>
-    </head>
-    <body>
-        <h1>ESP32 Nursery Dashboard</h1>
-        <div class="card">
-            <h3>Sensors</h3>
-            <p>Temp: <span id="temp">0</span>°C | Humidity: <span id="hum">0</span>%</p>
-            <p>Soil 1: <span id="soil1">0</span>% | Soil 2: <span id="soil2">0</span>%</p>
-            <p>Tank: <span id="percent">0</span>% | <span id="volume">0</span>L</p>
-        </div>
-        <div class="card">
-            <h3>Controls</h3>
-            <p>Pump: <span id="pump">OFF</span></p>
-            <button onclick="fetch('/pump/on').then(()=>update())" class="on">Pump ON</button>
-            <button onclick="fetch('/pump/off').then(()=>update())" class="off">Pump OFF</button>
-            <p>Valve: <span id="valve">STOPPED</span></p>
-            <button onclick="fetch('/valve/open').then(()=>update())">Valve OPEN</button>
-            <button onclick="fetch('/valve/close').then(()=>update())">Valve CLOSE</button>
-            <button onclick="fetch('/valve/stop').then(()=>update())">Valve STOP</button>
-        </div>
-        <p>Last update: <span id="last_update">Never</span></p>
-        
-        <script>
-            function update() {
-                fetch('/status').then(r=>r.json()).then(data=>{
-                    document.getElementById('temp').textContent = data.temp;
-                    document.getElementById('hum').textContent = data.hum;
-                    document.getElementById('soil1').textContent = data.soil1;
-                    document.getElementById('soil2').textContent = data.soil2;
-                    document.getElementById('percent').textContent = data.percent;
-                    document.getElementById('volume').textContent = data.volume;
-                    document.getElementById('pump').textContent = data.pump;
-                    document.getElementById('valve').textContent = data.valve;
-                    document.getElementById('last_update').textContent = data.last_update;
-                });
-            }
-            setInterval(update, 2000);
-            update();
-        </script>
-    </body>
-    </html>
-    """)
+void cloud_init() {
+    WiFi.mode(WIFI_AP_STA);
 
-@app.route("/esp32/log", methods=["POST"])
-def esp32_log():
-    global system_state, command_buffer
-    data = request.get_json()
-    
-    # Update ALL data from ESP32 including pump/valve - original behavior
-    system_state.update({
-        "pump": data.get("pump", "OFF"),
-        "valve": data.get("valve", "STOPPED"),
-        "temp": data.get("temp", 0),
-        "hum": data.get("hum", 0),
-        "soil1": data.get("soil1", 0),
-        "soil2": data.get("soil2", 0),
-        "fault1": data.get("fault1", False),
-        "fault2": data.get("fault2", False),
-        "percent": data.get("percent", 0),
-        "volume": data.get("volume", 0),
-        "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    })
-    
-    # Send commands to ESP32, then reset buffer to match current state
-    cmd = command_buffer.copy()
-    command_buffer["pump"] = system_state["pump"]    # Reset to current
-    command_buffer["valve"] = "STOPPED"             # Valve always stops
-    
-    return jsonify(cmd)
+    WiFi.begin(HOME_SSID, HOME_PASS);
+    Serial.print("Connecting to home WiFi");
+    int tries = 0;
+    while (WiFi.status()!= WL_CONNECTED && tries < 20) {
+        delay(500);
+        Serial.print(".");
+        tries++;
+    }
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("\nCloud connected!");
+        Serial.print("ESP32 Internet IP: ");
+        Serial.println(WiFi.localIP());
+        setupTime();
+        flushOfflineLogs();
+    } else {
+        Serial.println("\nCloud connect failed — running local only");
+    }
 
-@app.route("/pump/on")
-def pump_on():
-    command_buffer["pump"] = "ON"
-    return jsonify({"status": "ok", "pump": "ON"})
+    WiFi.softAP("ESP32_Nursery", "nursery123");
+    Serial.print("Local AP IP: ");
+    Serial.println(WiFi.softAPIP());
+}
 
-@app.route("/pump/off")
-def pump_off():
-    command_buffer["pump"] = "OFF"
-    return jsonify({"status": "ok", "pump": "OFF"})
+void cloud_update() {
+    static unsigned long lastSend = 0;
+    if (millis() - lastSend < 2000) return;
+    lastSend = millis();
 
-@app.route("/valve/open")
-def valve_open():
-    command_buffer["valve"] = "OPENING"
-    return jsonify({"status": "ok", "valve": "OPENING"})
+    if (WiFi.status()!= WL_CONNECTED) return;
 
-@app.route("/valve/close")
-def valve_close():
-    command_buffer["valve"] = "CLOSING"
-    return jsonify({"status": "ok", "valve": "CLOSING"})
+    flushOfflineLogs();
 
-@app.route("/valve/stop")
-def valve_stop():
-    command_buffer["valve"] = "STOPPED"
-    return jsonify({"status": "ok", "valve": "STOPPED"})
+    String json = "{";
+    // DELETED: pump and valve lines - ESP32 should NOT report these
+    json += "\"temp\":" + String(dht_get_temperature(), 1) + ",";
+    json += "\"hum\":" + String(dht_get_humidity(), 1) + ",";
+    json += "\"soil1\":" + String(soil_get_percent_1(), 1) + ",";
+    json += "\"soil2\":" + String(soil_get_percent_2(), 1) + ",";
+    json += "\"fault1\":" + String(soil_is_fault_1()? "true" : "false") + ",";
+    json += "\"fault2\":" + String(soil_is_fault_2()? "true" : "false") + ",";
+    json += "\"percent\":" + String(tank_get_percent(), 1) + ",";
+    json += "\"volume\":" + String(tank_get_volume_l(), 0);
+    json += "}";
 
-@app.route("/status")
-def status():
-    return jsonify(system_state)
+    HTTPClient http;
+    http.begin(CLOUD_URL);
+    http.addHeader("Content-Type", "application/json");
+    int code = http.POST(json);
 
-if __name__ == "__main__":
-    app.run(debug=True)
+    if (code == 200) {
+        String resp = http.getString();
+        Serial.println("Cloud OK: " + resp);
+        if (resp.indexOf("\"pump\":\"ON\"") >= 0) pump_on();
+        if (resp.indexOf("\"pump\":\"OFF\"") >= 0) pump_off();
+        if (resp.indexOf("\"valve\":\"OPENING\"") >= 0) valve_open();
+        if (resp.indexOf("\"valve\":\"CLOSING\"") >= 0) valve_close();
+        if (resp.indexOf("\"valve\":\"STOPPED\"") >= 0) valve_stop();
+    } else {
+        Serial.println("Cloud fail: " + String(code));
+    }
+    http.end();
+}
+
+void sendLogToVercel(String username, bool success) {
+    if (WiFi.status()!= WL_CONNECTED) {
+        Serial.println("Cloud: No WiFi - buffering log");
+        if (offlineLogs.size() < MAX_OFFLINE_LOGS) {
+            offlineLogs.push_back({username, success, millis()});
+            Serial.printf("Cloud: Buffered. Total: %d\n", offlineLogs.size());
+        }
+        return;
+    }
+
+    HTTPClient http;
+    http.begin(CLOUD_URL);
+    http.addHeader("Content-Type", "application/json");
+    http.setTimeout(5000);
+
+    String payload = "{\"user\":\"" + username + "\",\"success\":" + (success? "true" : "false") +
+                     ",\"time\":\"" + getTimeString() + "\"}";
+    int httpCode = http.POST(payload);
+
+    if (httpCode == 200) {
+        Serial.println("Cloud: Vercel notified of login");
+    } else {
+        Serial.printf("Cloud: Vercel notify failed, HTTP: %d\n", httpCode);
+    }
+    http.end();
+}
+
+void flushOfflineLogs() {
+    if (offlineLogs.empty() || WiFi.status()!= WL_CONNECTED) return;
+
+    Serial.printf("Cloud: Flushing %d offline logs\n", offlineLogs.size());
+    HTTPClient http;
+    http.begin(CLOUD_URL);
+    http.addHeader("Content-Type", "application/json");
+    http.setTimeout(5000);
+
+    for (auto it = offlineLogs.begin(); it!= offlineLogs.end(); ) {
+        String payload = "{\"user\":\"" + it->username + "\",\"success\":" + (it->success? "true" : "false") +
+                         ",\"offline\":true,\"delay_ms\":" + String(millis() - it->timestamp) +
+                         ",\"time\":\"" + getTimeString() + "\"}";
+
+        int code = http.POST(payload);
+        if (code == 200) {
+            Serial.println("Cloud: Flushed 1 offline log");
+            it = offlineLogs.erase(it);
+            delay(100);
+        } else {
+            break;
+        }
+    }
+    http.end();
+}
