@@ -121,7 +121,15 @@ def handle_logout():
 @login_required
 def handle_home():
     return render_template('home.html')
+@app.route('/nursery1')
+@login_required
+def handle_nursery1():
+    return render_template('nursery1.html')
 
+@app.route('/vision')
+@login_required
+def handle_vision():
+    return render_template('vision.html')
 @app.route('/contact')
 @login_required
 def handle_contact():
