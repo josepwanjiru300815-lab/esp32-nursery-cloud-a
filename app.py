@@ -1,7 +1,7 @@
 import os
 import secrets
 from datetime import datetime
-import pytz # Use pytz instead of zoneinfo
+import pytz
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, redirect, session, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -80,6 +80,7 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# ========== AUTH ROUTES ==========
 @app.route('/')
 def handle_root():
     return render_template('login.html')
@@ -117,28 +118,62 @@ def handle_logout():
         add_log(f"Logout: {user}", "info")
     return redirect('/')
 
+# ========== MAIN PAGES ==========
 @app.route('/home')
 @login_required
 def handle_home():
     return render_template('home.html')
+
+@app.route('/beds')
+@login_required
+def handle_beds():
+    return render_template('beds.html')
+
 @app.route('/nursery1')
 @login_required
 def handle_nursery1():
     return render_template('nursery1.html')
 
+@app.route('/nursery2')
+@login_required
+def handle_nursery2():
+    return render_template('nursery2.html')
+
+@app.route('/nursery3')
+@login_required
+def handle_nursery3():
+    return render_template('nursery3.html')
+
+@app.route('/about')
+@login_required
+def handle_about():
+    return render_template('about.html')
+
 @app.route('/vision')
 @login_required
 def handle_vision():
     return render_template('vision.html')
+
 @app.route('/contact')
 @login_required
 def handle_contact():
     return render_template('contact.html')
 
+@app.route('/contacts')
+@login_required
+def handle_contacts():
+    return render_template('contacts.html')
+
+# ========== ADMIN PAGES ==========
 @app.route('/admin')
 @admin_required
 def handle_admin():
     return render_template('admin.html')
+
+@app.route('/adminpanel')
+@admin_required
+def handle_adminpanel():
+    return render_template('adminpanel.html') # Rename your file to adminpanel.html
 
 @app.route('/api/logs')
 @admin_required
@@ -165,28 +200,11 @@ def kick_users():
     # Add your kick logic here
     add_log("Admin kicked all users", "warning")
     return redirect('/admin')
-@app.route('/beds')
-@login_required
-def handle_beds():
-    return render_template('beds.html')
 
-@app.route('/about')
-@login_required
-def handle_about():
-    return render_template('about.html')
-
-@app.route('/adminpanel')
-@admin_required
-def handle_adminpanel():
-    return render_template('adminpanel')  # Use 'adminpanel.html' if you rename the file 
+# ========== API ROUTES ==========
 @app.route('/api/status')
 def api_status():
     return jsonify(system_state)
-
-@app.route('/contacts')
-@login_required
-def handle_contacts():
-    return render_template('contacts.html')
 
 @app.route('/api/contacts')
 @login_required
@@ -198,7 +216,43 @@ def get_contacts():
     ]
     return jsonify(contacts)
 
-# FIXED: Single unified route - handles both login events and sensor data
+# ========== PUMP/VALVE CONTROL ROUTES ==========
+@app.route('/pump/on')
+@login_required
+def pump_on():
+    command_buffer["pump"] = "ON"
+    add_log("Pump turned ON via web", "info")
+    return redirect('/nursery1')
+
+@app.route('/pump/off')
+@login_required
+def pump_off():
+    command_buffer["pump"] = "OFF"
+    add_log("Pump turned OFF via web", "info")
+    return redirect('/nursery1')
+
+@app.route('/valve/open')
+@login_required
+def valve_open():
+    command_buffer["valve"] = "OPENING"
+    add_log("Valve opening via web", "info")
+    return redirect('/nursery1')
+
+@app.route('/valve/close')
+@login_required
+def valve_close():
+    command_buffer["valve"] = "CLOSING"
+    add_log("Valve closing via web", "info")
+    return redirect('/nursery1')
+
+@app.route('/valve/stop')
+@login_required
+def valve_stop():
+    command_buffer["valve"] = "STOPPED"
+    add_log("Valve stopped via web", "info")
+    return redirect('/nursery1')
+
+# ========== ESP32 INTEGRATION ==========
 @app.route('/esp32/log', methods=['POST'])
 def esp32_log():
     data = request.get_json()
@@ -210,11 +264,11 @@ def esp32_log():
     if esp_ip and ',' in esp_ip:
         esp_ip = esp_ip.split(',')[0].strip()
 
-    # Case 1: Login event from ESP32 sendLogToVercel() - ESP32 now sends "time"
+    # Case 1: Login event from ESP32 sendLogToVercel()
     if 'user' in data and 'success' in data:
         username = data.get('user', 'unknown')
         success = data.get('success', False)
-        esp_time = data.get('time') # <-- Use ESP32's Kenya time
+        esp_time = data.get('time')
 
         if success:
             add_log(f"ESP32 login success: {username} from {esp_ip}", "success", custom_time=esp_time)
