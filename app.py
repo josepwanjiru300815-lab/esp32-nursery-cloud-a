@@ -206,6 +206,11 @@ def kick_users():
 def api_status():
     return jsonify(system_state)
 
+# ADDED: This route fixes nursery1.html buttons and live updates
+@app.route('/status')
+def status_esp32():
+    return jsonify(system_state)
+
 @app.route('/api/contacts')
 @login_required
 def get_contacts():
