@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime
 import pytz
 from functools import wraps
-from flask import Flask, render_template, request, jsonify, redirect, session, url_for
+from flask import Flask, render_template, request, jsonify, redirect, session, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -18,7 +18,6 @@ db = SQLAlchemy(app)
 KENYA_TZ = pytz.timezone("Africa/Nairobi")
 
 def get_kenya_time():
-    """Returns current Kenya time as string"""
     return datetime.now(KENYA_TZ).strftime("%Y-%m-%d %H:%M:%S")
 
 # Database Table for Logs
@@ -29,7 +28,7 @@ class SecurityLog(db.Model):
     level = db.Column(db.String(20), nullable=False)
     ip = db.Column(db.String(50), nullable=False)
 
-# System State Memory Cache - resets on each serverless invocation
+# System State Memory Cache
 system_state = {
     "pump": "OFF", "valve": "STOPPED",
     "volume": 0.0, "percent": 0.0,
@@ -46,14 +45,12 @@ users = {
 }
 
 def add_log(msg, level="info", custom_time=None):
-    """Add log with Kenya time. Use custom_time if ESP32 provides it."""
     timestamp = custom_time if custom_time else get_kenya_time()
     ip = "System"
     if request:
         ip = request.headers.get('X-Forwarded-For', request.remote_addr)
         if ip and ',' in ip:
             ip = ip.split(',')[0].strip()
-
     try:
         new_log = SecurityLog(time=timestamp, msg=msg, level=level, ip=ip or "unknown")
         db.session.add(new_log)
@@ -79,6 +76,11 @@ def admin_required(f):
             return redirect(url_for('handle_login'))
         return f(*args, **kwargs)
     return decorated_function
+
+# ========== STATIC IMAGE ROUTE FOR ESP32 /img/ ==========
+@app.route('/img/<path:filename>')
+def serve_img(filename):
+    return send_from_directory('static', filename)
 
 # ========== AUTH ROUTES ==========
 @app.route('/')
@@ -173,7 +175,7 @@ def handle_admin():
 @app.route('/adminpanel')
 @admin_required
 def handle_adminpanel():
-    return render_template('adminpanel.html') # Rename your file to adminpanel.html
+    return render_template('adminpanel.html')
 
 @app.route('/api/logs')
 @admin_required
@@ -190,14 +192,12 @@ def api_logs():
 @admin_required
 def change_pass():
     new_password = request.form.get('new_password')
-    # Add your password update logic here
     add_log("Admin changed user password", "warning")
     return redirect('/admin')
 
 @app.route('/admin/kick_users', methods=['POST'])
 @admin_required
 def kick_users():
-    # Add your kick logic here
     add_log("Admin kicked all users", "warning")
     return redirect('/admin')
 
@@ -216,7 +216,7 @@ def get_contacts():
     ]
     return jsonify(contacts)
 
-# ========== PUMP/VALVE CONTROL ROUTES ==========
+# ========== PUMP/VALVE CONTROL ROUTES - ADDED FOR ESP32 COMPATIBILITY ==========
 @app.route('/pump/on')
 @login_required
 def pump_on():
@@ -259,25 +259,20 @@ def esp32_log():
     if not data:
         return jsonify({"error": "No JSON"}), 400
 
-    # Get real IP - works on Vercel
     esp_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     if esp_ip and ',' in esp_ip:
         esp_ip = esp_ip.split(',')[0].strip()
 
-    # Case 1: Login event from ESP32 sendLogToVercel()
     if 'user' in data and 'success' in data:
         username = data.get('user', 'unknown')
         success = data.get('success', False)
         esp_time = data.get('time')
-
         if success:
             add_log(f"ESP32 login success: {username} from {esp_ip}", "success", custom_time=esp_time)
         else:
             add_log(f"ESP32 login failed: {username} from {esp_ip}", "error", custom_time=esp_time)
-
         return jsonify({"status": "logged"}), 200
 
-    # Case 2: Sensor data from ESP32 cloud_update()
     if 'temp' in data:
         system_state.update({
             "pump": data.get('pump', 'OFF'),
@@ -291,7 +286,6 @@ def esp32_log():
             "percent": data.get('percent', 0.0),
             "volume": data.get('volume', 0.0)
         })
-        # Send back commands to ESP32
         return jsonify({
             "pump": command_buffer["pump"],
             "valve": command_buffer["valve"]
