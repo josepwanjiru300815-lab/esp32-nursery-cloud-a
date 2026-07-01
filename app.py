@@ -157,7 +157,20 @@ def kick_users():
     # Add your kick logic here
     add_log("Admin kicked all users", "warning")
     return redirect('/admin')
+@app.route('/beds')
+@login_required
+def handle_beds():
+    return render_template('beds.html')
 
+@app.route('/about')
+@login_required
+def handle_about():
+    return render_template('about.html')
+
+@app.route('/adminpanel')
+@admin_required
+def handle_adminpanel():
+    return render_template('adminpanel')  # Use 'adminpanel.html' if you rename the file 
 @app.route('/api/status')
 def api_status():
     return jsonify(system_state)
