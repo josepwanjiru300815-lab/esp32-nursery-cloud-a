@@ -226,36 +226,30 @@ def get_contacts():
     return jsonify(contacts)
 
 # ========== PUMP/VALVE CONTROL ROUTES - ADDED FOR ESP32 COMPATIBILITY ==========
-# ========== PUMP/VALVE CONTROL ROUTES - TESTING WITHOUT LOGIN ==========
 @app.route('/pump/on')
 def pump_on():
     command_buffer["pump"] = "ON"
-    # add_log("Pump turned ON via web", "info")  # COMMENT OUT FOR NOW
-    return redirect('/nursery1')
+    return "PUMP ON - OK"  # Return text instead of redirect
 
 @app.route('/pump/off')
 def pump_off():
     command_buffer["pump"] = "OFF"
-    # add_log("Pump turned OFF via web", "info")  # COMMENT OUT FOR NOW
-    return redirect('/nursery1')
+    return "PUMP OFF - OK"
 
 @app.route('/valve/open')
 def valve_open():
     command_buffer["valve"] = "OPENING"
-    # add_log("Valve opening via web", "info")  # COMMENT OUT FOR NOW
-    return redirect('/nursery1')
+    return "VALVE OPENING - OK"
 
 @app.route('/valve/close')
 def valve_close():
     command_buffer["valve"] = "CLOSING"
-    # add_log("Valve closing via web", "info")  # COMMENT OUT FOR NOW
-    return redirect('/nursery1')
+    return "VALVE CLOSING - OK"
 
 @app.route('/valve/stop')
 def valve_stop():
     command_buffer["valve"] = "STOPPED"
-    # add_log("Valve stopped via web", "info")  # COMMENT OUT FOR NOW
-    return redirect('/nursery1')
+    return "VALVE STOPPED - OK"
 
 # ========== ESP32 INTEGRATION ==========
 @app.route('/esp32/log', methods=['POST'])
