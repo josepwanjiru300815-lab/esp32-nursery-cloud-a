@@ -1,6 +1,6 @@
 import os
 import secrets
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, redirect, session, url_for, send_from_directory
@@ -72,12 +72,25 @@ def add_log(msg, level="info", custom_time=None):
         db.session.rollback()
         print(f"Database log error: {e}")
 
+# ========== SESSION TIMEOUT = 20 MINUTES ==========
+SESSION_TIMEOUT = timedelta(minutes=20)
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user' not in session:
-            add_log(f"Unauthorized access attempt to {request.path}", "error")
             return redirect(url_for('handle_login'))
+        # Check inactivity timeout
+        last_active = session.get('last_active')
+        if last_active:
+            elapsed = datetime.utcnow() - datetime.fromisoformat(last_active)
+            if elapsed > SESSION_TIMEOUT:
+                user = session.get('user')
+                session.clear()
+                add_log(f"Session expired (20min inactivity): {user}", "warning")
+                return redirect(url_for('handle_login'))
+        # Reset timer on every page/action visit
+        session['last_active'] = datetime.utcnow().isoformat()
         return f(*args, **kwargs)
     return decorated_function
 
@@ -85,8 +98,17 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get('user') != 'admin':
-            add_log(f"Unauthorized admin access attempt to {request.path}", "error")
             return redirect(url_for('handle_login'))
+        # Check inactivity timeout
+        last_active = session.get('last_active')
+        if last_active:
+            elapsed = datetime.utcnow() - datetime.fromisoformat(last_active)
+            if elapsed > SESSION_TIMEOUT:
+                user = session.get('user')
+                session.clear()
+                add_log(f"Admin session expired (20min inactivity): {user}", "warning")
+                return redirect(url_for('handle_login'))
+        session['last_active'] = datetime.utcnow().isoformat()
         return f(*args, **kwargs)
     return decorated_function
 
@@ -110,6 +132,7 @@ def handle_login_user():
     password = request.form.get('password')
     if users.get(username) == password and username == 'nursery':
         session['user'] = username
+        session['last_active'] = datetime.utcnow().isoformat()
         add_log(f"User login success: {username}", "success")
         return redirect('/home')
     add_log(f"User login failed: {username}", "error")
@@ -121,6 +144,7 @@ def handle_login_admin():
     password = request.form.get('password')
     if users.get(username) == password and username == 'admin':
         session['user'] = username
+        session['last_active'] = datetime.utcnow().isoformat()
         add_log(f"Admin login success: {username}", "success")
         return redirect('/admin')
     add_log(f"Admin login failed: {username}", "error")
@@ -129,6 +153,7 @@ def handle_login_admin():
 @app.route('/logout')
 def handle_logout():
     user = session.pop('user', None)
+    session.clear()
     if user:
         add_log(f"Logout: {user}", "info")
     return redirect('/')
@@ -203,10 +228,13 @@ def kick_users():
     add_log("Admin kicked all users", "warning")
     return redirect('/admin')
 
-# ========== STATUS API (used by nursery1.html JS) ==========
+# ========== STATUS API ==========
+# NOTE: /status does NOT reset the inactivity timer on purpose
+# so that a tab left open polling every 1.5s does not keep session alive
 @app.route('/status')
-@login_required
 def status_esp32():
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
     return jsonify(system_state)
 
 @app.route('/api/status')
@@ -241,7 +269,6 @@ def pump_off():
 def toggle_auto():
     system_state['auto'] = 'MANUAL' if system_state['auto'] == 'AUTO' else 'AUTO'
     if system_state['auto'] == 'MANUAL':
-        # Turn pump off when entering manual so user starts from known state
         command_buffer['pump'] = 'OFF'
         system_state['pump'] = 'OFF'
     add_log(f"Pump mode switched to {system_state['auto']}", "info")
@@ -324,7 +351,7 @@ def esp32_log():
             "percent": data.get('percent', 0.0),
             "volume":  data.get('volume',  0.0)
         })
-        # Build response: send queued commands then clear them
+        # Send queued commands then clear them
         response = {}
         if command_buffer['pump'] is not None:
             response['pump'] = command_buffer['pump']
