@@ -14,7 +14,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Kenya timezone using pytz
+# Kenya timezone
 KENYA_TZ = pytz.timezone("Africa/Nairobi")
 
 def get_kenya_time():
@@ -28,29 +28,42 @@ class SecurityLog(db.Model):
     level = db.Column(db.String(20), nullable=False)
     ip = db.Column(db.String(50), nullable=False)
 
-# System State Memory Cache
+# System State - matches ESP32 status JSON exactly
 system_state = {
-    "pump": "OFF", "valve": "STOPPED",
-    "volume": 0.0, "percent": 0.0,
-    "temp": 0.0, "hum": 0.0,
-    "soil1": 0.0, "soil2": 0.0,
-    "fault1": False, "fault2": False
+    "pump": "OFF",
+    "valve": "STOPPED",
+    "auto": "AUTO",
+    "valveAuto": "AUTO",
+    "volume": 0.0,
+    "percent": 0.0,
+    "temp": 0.0,
+    "hum": 0.0,
+    "soil1": 0.0,
+    "soil2": 0.0,
+    "fault1": False,
+    "fault2": False
 }
 
-command_buffer = {"pump": "OFF", "valve": "STOPPED"}
+# Commands queued to send back to ESP32 on next data push
+command_buffer = {
+    "pump": None,
+    "valve": None
+}
 
 users = {
     "nursery": os.environ.get("USER_PASSWORD", "12345678"),
-    "admin": os.environ.get("ADMIN_PASSWORD", "12345678")
+    "admin":   os.environ.get("ADMIN_PASSWORD", "12345678")
 }
 
 def add_log(msg, level="info", custom_time=None):
     timestamp = custom_time if custom_time else get_kenya_time()
     ip = "System"
-    if request:
+    try:
         ip = request.headers.get('X-Forwarded-For', request.remote_addr)
         if ip and ',' in ip:
             ip = ip.split(',')[0].strip()
+    except Exception:
+        pass
     try:
         new_log = SecurityLog(time=timestamp, msg=msg, level=level, ip=ip or "unknown")
         db.session.add(new_log)
@@ -71,13 +84,13 @@ def login_required(f):
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if session.get('user')!= 'admin':
+        if session.get('user') != 'admin':
             add_log(f"Unauthorized admin access attempt to {request.path}", "error")
             return redirect(url_for('handle_login'))
         return f(*args, **kwargs)
     return decorated_function
 
-# ========== STATIC IMAGE ROUTE FOR ESP32 /img/ ==========
+# ========== STATIC FILES ==========
 @app.route('/img/<path:filename>')
 def serve_img(filename):
     return send_from_directory('static', filename)
@@ -97,9 +110,9 @@ def handle_login_user():
     password = request.form.get('password')
     if users.get(username) == password and username == 'nursery':
         session['user'] = username
-        add_log(f"Vercel user login success: {username}", "success")
+        add_log(f"User login success: {username}", "success")
         return redirect('/home')
-    add_log(f"Failed Vercel user login: {username}", "error")
+    add_log(f"User login failed: {username}", "error")
     return redirect('/?error=1')
 
 @app.route('/login/admin', methods=['POST'])
@@ -108,9 +121,9 @@ def handle_login_admin():
     password = request.form.get('password')
     if users.get(username) == password and username == 'admin':
         session['user'] = username
-        add_log(f"Vercel admin login success: {username}", "success")
+        add_log(f"Admin login success: {username}", "success")
         return redirect('/admin')
-    add_log(f"Failed Vercel admin login: {username}", "error")
+    add_log(f"Admin login failed: {username}", "error")
     return redirect('/?error=1')
 
 @app.route('/logout')
@@ -120,7 +133,7 @@ def handle_logout():
         add_log(f"Logout: {user}", "info")
     return redirect('/')
 
-# ========== MAIN PAGES ==========
+# ========== PAGE ROUTES ==========
 @app.route('/home')
 @login_required
 def handle_home():
@@ -156,26 +169,16 @@ def handle_about():
 def handle_vision():
     return render_template('vision.html')
 
-@app.route('/contact')
-@login_required
-def handle_contact():
-    return render_template('contact.html')
-
 @app.route('/contacts')
 @login_required
 def handle_contacts():
     return render_template('contacts.html')
 
-# ========== ADMIN PAGES ==========
+# ========== ADMIN ROUTES ==========
 @app.route('/admin')
 @admin_required
 def handle_admin():
     return render_template('admin.html')
-
-@app.route('/adminpanel')
-@admin_required
-def handle_adminpanel():
-    return render_template('adminpanel.html')
 
 @app.route('/api/logs')
 @admin_required
@@ -191,7 +194,6 @@ def api_logs():
 @app.route('/admin/change_pass', methods=['POST'])
 @admin_required
 def change_pass():
-    new_password = request.form.get('new_password')
     add_log("Admin changed user password", "warning")
     return redirect('/admin')
 
@@ -201,63 +203,95 @@ def kick_users():
     add_log("Admin kicked all users", "warning")
     return redirect('/admin')
 
-# ========== API ROUTES ==========
+# ========== STATUS API (used by nursery1.html JS) ==========
+@app.route('/status')
+@login_required
+def status_esp32():
+    return jsonify(system_state)
+
 @app.route('/api/status')
 def api_status():
     return jsonify(system_state)
 
-# ADDED: This route fixes nursery1.html buttons and live updates
-@app.route('/status')
-def status_esp32():
-    return jsonify(system_state)
-
-@app.route('/api/contacts')
-@login_required
-def get_contacts():
-    contacts = [
-        {"name": "JOSEPH", "img": url_for('static', filename='joseph.jpg'), "role": "Developer", "phone": "+254700000001"},
-        {"name": "AYUB", "img": url_for('static', filename='ayub.jpg'), "role": "Supervisor", "phone": "+254700000002"},
-        {"name": "DR.MAITETHIA", "img": url_for('static', filename='maitethia.jpg'), "role": "Lead Supervisor", "phone": "+254700000003"},
-    ]
-    return jsonify(contacts)
-
-# ========== PUMP/VALVE CONTROL ROUTES - ADDED FOR ESP32 COMPATIBILITY ==========
+# ========== PUMP CONTROL ==========
 @app.route('/pump/on')
 @login_required
 def pump_on():
-    command_buffer["pump"] = "ON"
-    add_log("Pump turned ON via web", "info")
-    return redirect('/nursery1')
+    if system_state['auto'] == 'AUTO':
+        add_log("Pump ON blocked - AUTO mode active", "warning")
+        return jsonify({"blocked": True})
+    command_buffer['pump'] = 'ON'
+    system_state['pump'] = 'ON'
+    add_log("Pump turned ON via cloud dashboard", "info")
+    return jsonify({"ok": True})
 
 @app.route('/pump/off')
 @login_required
 def pump_off():
-    command_buffer["pump"] = "OFF"
-    add_log("Pump turned OFF via web", "info")
-    return redirect('/nursery1')
+    if system_state['auto'] == 'AUTO':
+        add_log("Pump OFF blocked - AUTO mode active", "warning")
+        return jsonify({"blocked": True})
+    command_buffer['pump'] = 'OFF'
+    system_state['pump'] = 'OFF'
+    add_log("Pump turned OFF via cloud dashboard", "info")
+    return jsonify({"ok": True})
 
+@app.route('/toggleAuto')
+@login_required
+def toggle_auto():
+    system_state['auto'] = 'MANUAL' if system_state['auto'] == 'AUTO' else 'AUTO'
+    if system_state['auto'] == 'MANUAL':
+        # Turn pump off when entering manual so user starts from known state
+        command_buffer['pump'] = 'OFF'
+        system_state['pump'] = 'OFF'
+    add_log(f"Pump mode switched to {system_state['auto']}", "info")
+    return jsonify({"ok": True})
+
+# ========== VALVE CONTROL ==========
 @app.route('/valve/open')
 @login_required
 def valve_open():
-    command_buffer["valve"] = "OPENING"
-    add_log("Valve opening via web", "info")
-    return redirect('/nursery1')
+    if system_state['valveAuto'] == 'AUTO':
+        add_log("Valve OPEN blocked - AUTO mode active", "warning")
+        return jsonify({"blocked": True})
+    command_buffer['valve'] = 'OPENING'
+    system_state['valve'] = 'OPENING'
+    add_log("Valve opening via cloud dashboard", "info")
+    return jsonify({"ok": True})
 
 @app.route('/valve/close')
 @login_required
 def valve_close():
-    command_buffer["valve"] = "CLOSING"
-    add_log("Valve closing via web", "info")
-    return redirect('/nursery1')
+    if system_state['valveAuto'] == 'AUTO':
+        add_log("Valve CLOSE blocked - AUTO mode active", "warning")
+        return jsonify({"blocked": True})
+    command_buffer['valve'] = 'CLOSING'
+    system_state['valve'] = 'CLOSING'
+    add_log("Valve closing via cloud dashboard", "info")
+    return jsonify({"ok": True})
 
 @app.route('/valve/stop')
 @login_required
 def valve_stop():
-    command_buffer["valve"] = "STOPPED"
-    add_log("Valve stopped via web", "info")
-    return redirect('/nursery1')
+    if system_state['valveAuto'] == 'AUTO':
+        add_log("Valve STOP blocked - AUTO mode active", "warning")
+        return jsonify({"blocked": True})
+    command_buffer['valve'] = 'STOPPED'
+    system_state['valve'] = 'STOPPED'
+    add_log("Valve stopped via cloud dashboard", "info")
+    return jsonify({"ok": True})
 
-# ========== ESP32 INTEGRATION ==========
+@app.route('/toggleValveAuto')
+@login_required
+def toggle_valve_auto():
+    system_state['valveAuto'] = 'MANUAL' if system_state['valveAuto'] == 'AUTO' else 'AUTO'
+    if system_state['valveAuto'] == 'MANUAL':
+        command_buffer['valve'] = 'STOPPED'
+        system_state['valve'] = 'STOPPED'
+    add_log(f"Valve mode switched to {system_state['valveAuto']}", "info")
+    return jsonify({"ok": True})
+
+# ========== ESP32 DATA PUSH ==========
 @app.route('/esp32/log', methods=['POST'])
 def esp32_log():
     data = request.get_json()
@@ -268,35 +302,39 @@ def esp32_log():
     if esp_ip and ',' in esp_ip:
         esp_ip = esp_ip.split(',')[0].strip()
 
+    # Login log from ESP32
     if 'user' in data and 'success' in data:
         username = data.get('user', 'unknown')
         success = data.get('success', False)
         esp_time = data.get('time')
-        if success:
-            add_log(f"ESP32 login success: {username} from {esp_ip}", "success", custom_time=esp_time)
-        else:
-            add_log(f"ESP32 login failed: {username} from {esp_ip}", "error", custom_time=esp_time)
+        level = "success" if success else "error"
+        msg = f"ESP32 login {'success' if success else 'failed'}: {username} from {esp_ip}"
+        add_log(msg, level, custom_time=esp_time)
         return jsonify({"status": "logged"}), 200
 
+    # Sensor data from ESP32
     if 'temp' in data:
         system_state.update({
-            "pump": data.get('pump', 'OFF'),
-            "valve": data.get('valve', 'STOPPED'),
-            "temp": data.get('temp', 0.0),
-            "hum": data.get('hum', 0.0),
-            "soil1": data.get('soil1', 0.0),
-            "soil2": data.get('soil2', 0.0),
-            "fault1": data.get('fault1', False),
-            "fault2": data.get('fault2', False),
+            "temp":    data.get('temp',    0.0),
+            "hum":     data.get('hum',     0.0),
+            "soil1":   data.get('soil1',   0.0),
+            "soil2":   data.get('soil2',   0.0),
+            "fault1":  data.get('fault1',  False),
+            "fault2":  data.get('fault2',  False),
             "percent": data.get('percent', 0.0),
-            "volume": data.get('volume', 0.0)
+            "volume":  data.get('volume',  0.0)
         })
-        return jsonify({
-            "pump": command_buffer["pump"],
-            "valve": command_buffer["valve"]
-        }), 200
+        # Build response: send queued commands then clear them
+        response = {}
+        if command_buffer['pump'] is not None:
+            response['pump'] = command_buffer['pump']
+            command_buffer['pump'] = None
+        if command_buffer['valve'] is not None:
+            response['valve'] = command_buffer['valve']
+            command_buffer['valve'] = None
+        return jsonify(response), 200
 
     return jsonify({"status": "ok"}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True)
