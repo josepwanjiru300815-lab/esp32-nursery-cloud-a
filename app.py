@@ -73,7 +73,7 @@ def add_log(msg, level="info", custom_time=None):
         print(f"Database log error: {e}")
 
 # ========== SESSION TIMEOUT = 20 MINUTES ==========
-SESSION_TIMEOUT = timedelta(minutes=20)
+SESSION_TIMEOUT = timedelta(minutes=10)
 
 def login_required(f):
     @wraps(f)
