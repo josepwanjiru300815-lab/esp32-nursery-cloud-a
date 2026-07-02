@@ -6,101 +6,202 @@
     <title>Nursery Bed 1</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; background: #09100d; color: #e2e8f0; padding: 12px; font-size: 13px; min-height:100vh; }
-      .header { display: flex; align-items: center; gap: 8px; padding: 4px 0; margin-bottom: 10px; position:sticky; top:0; background:#09100d; z-index:10; }
-      .back-btn { background: #111e17; border: 2px solid #1e3a2b; color: #4ade80; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold; transition:0.2s; }
-      .back-btn:hover{background:#4ade80;color:#09100d}
-        h1 { flex: 1; text-align: center; font-size: 18px; margin: 0; color: #4ade80; letter-spacing:1px; }
-      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-width: 600px; margin: 0 auto; }
-      .card { background: #111e17; border-radius: 10px; padding: 12px; border: 2px solid #1e3a2b; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
-      .card h2 { text-align: center; margin: 0 0 6px 0; font-size: 12px; color: #86efac; letter-spacing: 1px; }
-      .value { font-size: 22px; text-align: center; font-weight: bold; margin: 4px 0; color: #38bdf8; }
-      .sub { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 2px; }
-      .btn-group { display: flex; justify-content: space-between; gap: 6px; }
-        a { text-decoration: none; display: inline-block; width: 48%; }
-        a.fullwidth { width: 100%; margin-top: 4px; }
-        button { padding: 8px 4px; margin: 2px 0; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor:pointer; width: 100%; display: block; transition: 0.2s; }
+        body { font-family: Arial, sans-serif; background: #09100d; color: #e2e8f0; padding: 12px; font-size: 13px; }
+        .header { display: flex; align-items: center; gap: 8px; padding: 4px 0; margin-bottom: 10px; }
+        .back-btn { background: #111e17; border: 2px solid #1e3a2b; color: #4ade80; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold; }
+        h1 { flex: 1; text-align: center; font-size: 18px; margin: 0; color: #4ade80; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-width: 600px; margin: 0 auto; }
+        .card { background: #111e17; border-radius: 10px; padding: 12px; border: 2px solid #1e3a2b; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+        .card h2 { text-align: center; margin: 0 0 6px 0; font-size: 12px; color: #86efac; letter-spacing: 1px; }
+        .value { font-size: 22px; text-align: center; font-weight: bold; margin: 4px 0; color: #38bdf8; }
+        .sub { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 2px; }
+        .btn-group { display: flex; justify-content: space-between; gap: 6px; }
+        button { padding: 8px 4px; margin: 2px 0; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; width: 100%; display: block; transition: 0.2s; }
         button:active { transform: scale(0.97); }
-      .on { background: #16a34a; color: white; }
-      .on:hover{background:#22c55e}
-      .off { background: #c2410c; color: white; }
-      .off:hover{background:#ea580c}
-      .stop { background: #475569; color: white; }
-      .stop:hover{background:#64748b}
-      .badge { display: inline-block; padding: 3px 10px; border-radius: 15px; font-weight: bold; font-size: 10px; margin: 2px auto; display: table; text-align: center; }
-      .badge-on,.badge-opened { background: #16a34a; color: white; box-shadow: 0 0 10px rgba(22,163,74,0.4); }
-      .badge-off,.badge-closed { background: #c2410c; color: white; }
-      .badge-opening,.badge-closing { background: #0284c7; color: white; animation: pulse 1s infinite alternate; }
-      .badge-stopped { background: #475569; color: white; }
-      .tank-section { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 4px; }
-      .tank-wrapper { position: relative; width: 70px; height: 110px; border: 3px solid #475569; border-top: none; border-radius: 0 0 12px 12px; overflow: hidden; background: #050a08; }
-      .water { position: absolute; bottom: 0; width: 100%; background: linear-gradient(180deg, #38bdf8 0%, #1d4ed8 100%); transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
-      .tank-grid { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
-      .grid-line { width: 100%; border-top: 1px dashed rgba(255,255,255,0.15); }
-      .grid-line.boundary { border-top: none; }
-      .labels-column { display: flex; flex-direction: column; justify-content: space-between; height: 110px; font-size: 9px; font-weight: bold; color: #64748b; }
-      .volume-display { margin-top: 8px; background: #050a08; padding: 6px; border-radius: 6px; border: 1px solid #1e3a2b; text-align: center; }
-      .volume-label { font-size: 9px; color: #64748b; }
-      .volume-value { font-size: 16px; font-weight: bold; color: #38bdf8; }
-      .bar-bg { background: #1e3a2b; border-radius: 6px; height: 8px; margin: 4px 0; overflow: hidden; border: 1px solid #050a08; }
-      .bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s ease; background: linear-gradient(90deg, #ea580c, #22c55e); }
-      .fault-overlay { background: #7f1d1d; border: 1px solid #dc2626; border-radius: 6px; padding: 4px; text-align: center; color: #fca5a5; font-weight: bold; font-size: 10px; display: none; margin-top: 4px; }
+        .on  { background: #16a34a; color: white; }
+        .off { background: #c2410c; color: white; }
+        .stop { background: #475569; color: white; }
+        .auto { background: #0284c7; color: white; }
+        .manual { background: #ea580c; color: white; }
+        .badge { display: table; padding: 3px 10px; border-radius: 15px; font-weight: bold; font-size: 10px; margin: 2px auto; text-align: center; }
+        .badge-on, .badge-opened  { background: #16a34a; color: white; box-shadow: 0 0 10px rgba(22,163,74,0.4); }
+        .badge-off, .badge-closed { background: #c2410c; color: white; }
+        .badge-opening, .badge-closing { background: #0284c7; color: white; animation: pulse 1s infinite alternate; }
+        .badge-stopped { background: #475569; color: white; }
+        .badge-auto    { background: #0284c7; color: white; }
+        .badge-manual  { background: #ea580c; color: white; }
+        .mode-row { text-align: center; margin: 6px 0 4px 0; }
+        .tank-section { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 4px; }
+        .tank-wrapper { position: relative; width: 70px; height: 110px; border: 3px solid #475569; border-top: none; border-radius: 0 0 12px 12px; overflow: hidden; background: #050a08; }
+        .water { position: absolute; bottom: 0; width: 100%; background: linear-gradient(180deg, #38bdf8 0%, #1d4ed8 100%); transition: height 0.6s cubic-bezier(0.4,0,0.2,1); }
+        .tank-grid { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
+        .grid-line { width: 100%; border-top: 1px dashed rgba(255,255,255,0.15); }
+        .grid-line.boundary { border-top: none; }
+        .labels-column { display: flex; flex-direction: column; justify-content: space-between; height: 110px; font-size: 9px; font-weight: bold; color: #64748b; }
+        .volume-display { margin-top: 8px; background: #050a08; padding: 6px; border-radius: 6px; border: 1px solid #1e3a2b; text-align: center; }
+        .volume-label { font-size: 9px; color: #64748b; }
+        .volume-value { font-size: 16px; font-weight: bold; color: #38bdf8; }
+        .bar-bg { background: #1e3a2b; border-radius: 6px; height: 8px; margin: 4px 0; overflow: hidden; border: 1px solid #050a08; }
+        .bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s ease; background: linear-gradient(90deg, #ea580c, #22c55e); }
+        .fault-overlay { background: #7f1d1d; border: 1px solid #dc2626; border-radius: 6px; padding: 4px; text-align: center; color: #fca5a5; font-weight: bold; font-size: 10px; display: none; margin-top: 4px; }
+        .fullwidth { grid-column: 1 / -1; }
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #dc2626; color: white; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: bold; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; white-space: nowrap; }
         @keyframes pulse { from { opacity: 0.6; } to { opacity: 1; } }
-      .fullwidth{grid-column:1/-1}
     </style>
     <script>
-        function badgeClass(val){
-            const map={'ON':'badge-on','OFF':'badge-off','OPENING':'badge-opening','CLOSING':'badge-closing','OPENED':'badge-opened','CLOSED':'badge-closed','STOPPED':'badge-stopped','STOP':'badge-stopped'};
-            return 'badge '+(map[val]||'badge-stopped');
+        function badgeClass(val) {
+            const map = {
+                'ON':'badge-on','OFF':'badge-off',
+                'OPENING':'badge-opening','CLOSING':'badge-closing',
+                'OPENED':'badge-opened','CLOSED':'badge-closed',
+                'STOPPED':'badge-stopped','STOP':'badge-stopped',
+                'AUTO':'badge-auto','MANUAL':'badge-manual'
+            };
+            return 'badge ' + (map[val] || 'badge-stopped');
         }
-        function updateSoilCard(valId,barId,statusId,overlayId,percent,isFault){
-            const v=document.getElementById(valId), b=document.getElementById(barId), s=document.getElementById(statusId), o=document.getElementById(overlayId);
-            if(isFault){
-                v.innerText='---'; b.style.width='100%'; b.style.background='#dc2626'; s.innerText=''; o.style.display='block';
+
+        function showToast(msg) {
+            let t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.opacity = '1';
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2500);
+        }
+
+        function cmd(url) {
+            fetch(url)
+                .then(r => r.json())
+                .then(d => {
+                    if (d.blocked) { showToast('Switch to MANUAL mode first'); }
+                    updateStatus();
+                })
+                .catch(() => showToast('Command failed'));
+        }
+
+        function updateSoilCard(valId, barId, statusId, overlayId, percent, isFault) {
+            const v = document.getElementById(valId);
+            const b = document.getElementById(barId);
+            const s = document.getElementById(statusId);
+            const o = document.getElementById(overlayId);
+            if (isFault) {
+                v.innerText = '---';
+                b.style.width = '100%';
+                b.style.background = '#dc2626';
+                s.innerText = '';
+                o.style.display = 'block';
             } else {
-                v.innerText=percent.toFixed(0)+'%'; b.style.width=percent+'%'; b.style.background=''; o.style.display='none';
-                s.innerText=percent<40?'ARID Earth':'Optimal';
-                s.style.color=percent<40?'#f97316':'#4ade80';
+                v.innerText = percent.toFixed(0) + '%';
+                b.style.width = percent + '%';
+                b.style.background = '';
+                o.style.display = 'none';
+                s.innerText = percent < 40 ? 'ARID Earth' : 'Optimal';
+                s.style.color = percent < 40 ? '#f97316' : '#4ade80';
             }
         }
-        function updateStatus(){
-            fetch('/status').then(r=>r.json()).then(d=>{ // CHANGED: removed /api
-                const ps=document.getElementById('pumpStatus'); ps.innerText=d.pump; ps.className=badgeClass(d.pump);
-                const vs=document.getElementById('valveStatus'); vs.innerText=d.valve; vs.className=badgeClass(d.valve);
-                document.getElementById('water').style.height=d.percent+'%';
-                document.getElementById('volume').innerText=d.volume+' L';
-                document.getElementById('temp').innerText=d.temp.toFixed(1)+'°C';
-                document.getElementById('hum').innerText=d.hum.toFixed(1)+'%';
-                document.getElementById('humStatus').innerText=d.hum<40?'Dry Air':'Good';
-                document.getElementById('humStatus').style.color=d.hum<40?'#f97316':'#4ade80';
-                document.getElementById('tempStatus').innerText=d.temp>35?'HOT Farm':d.temp<15?'Cold Ambient':'Good';
-                document.getElementById('tempStatus').style.color=d.temp>35?'#dc2626':'#4ade80';
-                updateSoilCard('soilVal1','soilBar1','soilStatus1','soilFault1',d.soil1,d.fault1);
-                updateSoilCard('soilVal2','soilBar2','soilStatus2','soilFault2',d.soil2,d.fault2);
-            }).catch(e=>console.log('Fetch error:',e));
+
+        function updateStatus() {
+            fetch('/status')
+                .then(r => r.json())
+                .then(d => {
+                    // Pump
+                    const ps = document.getElementById('pumpStatus');
+                    ps.innerText = d.pump; ps.className = badgeClass(d.pump);
+
+                    // Pump mode
+                    const ms = document.getElementById('modeStatus');
+                    ms.innerText = d.auto; ms.className = badgeClass(d.auto);
+                    const mb = document.getElementById('modeBtn');
+                    mb.innerText = d.auto === 'AUTO' ? 'Switch to MANUAL' : 'Switch to AUTO';
+                    mb.className = d.auto === 'AUTO' ? 'manual' : 'auto';
+
+                    // Valve
+                    const vs = document.getElementById('valveStatus');
+                    vs.innerText = d.valve; vs.className = badgeClass(d.valve);
+
+                    // Valve mode
+                    const vms = document.getElementById('valveModeStatus');
+                    vms.innerText = d.valveAuto; vms.className = badgeClass(d.valveAuto);
+                    const vmb = document.getElementById('valveModeBtn');
+                    vmb.innerText = d.valveAuto === 'AUTO' ? 'Switch to MANUAL' : 'Switch to AUTO';
+                    vmb.className = d.valveAuto === 'AUTO' ? 'manual' : 'auto';
+
+                    // Tank
+                    document.getElementById('water').style.height = d.percent + '%';
+                    document.getElementById('volume').innerText = d.volume + ' L';
+
+                    // Env
+                    document.getElementById('temp').innerText = d.temp.toFixed(1) + '°C';
+                    document.getElementById('hum').innerText = d.hum.toFixed(1) + '%';
+                    document.getElementById('humStatus').innerText = d.hum < 40 ? 'Dry Air' : 'Good';
+                    document.getElementById('humStatus').style.color = d.hum < 40 ? '#f97316' : '#4ade80';
+                    document.getElementById('tempStatus').innerText = d.temp > 35 ? 'HOT Farm' : d.temp < 15 ? 'Cold Ambient' : 'Good';
+                    document.getElementById('tempStatus').style.color = d.temp > 35 ? '#dc2626' : '#4ade80';
+
+                    // Soil
+                    updateSoilCard('soilVal1','soilBar1','soilStatus1','soilFault1', d.soil1, d.fault1);
+                    updateSoilCard('soilVal2','soilBar2','soilStatus2','soilFault2', d.soil2, d.fault2);
+                })
+                .catch(e => console.log('Status fetch error:', e));
         }
-        setInterval(updateStatus, 1500); window.onload=updateStatus;
+
+        setInterval(updateStatus, 1500);
+        window.onload = updateStatus;
     </script>
 </head>
 <body>
+    <div id="toast"></div>
     <div class="header">
         <a href="/beds" class="back-btn">← Beds</a>
         <h1>NURSERY BED 1</h1>
     </div>
     <div class="grid">
+
+        <!-- PUMP CARD -->
         <div class="card">
             <h2>PUMP</h2>
             <div class="value"><span id="pumpStatus" class="badge badge-off">OFF</span></div>
-            <div class="btn-group"><a href="/pump/on"><button class="on">ON</button></a><a href="/pump/off"><button class="off">OFF</button></a></div>
+            <div class="mode-row"><span id="modeStatus" class="badge badge-auto">AUTO</span></div>
+            <div class="btn-group">
+                <button id="modeBtn" class="manual" onclick="cmd('/toggleAuto')" style="width:100%;margin-bottom:4px">Switch to MANUAL</button>
+            </div>
+            <div class="btn-group">
+                <button class="on"  style="width:48%" onclick="cmd('/pump/on')">ON</button>
+                <button class="off" style="width:48%" onclick="cmd('/pump/off')">OFF</button>
+            </div>
         </div>
+
+        <!-- VALVE CARD -->
         <div class="card">
             <h2>VALVE</h2>
             <div class="value"><span id="valveStatus" class="badge badge-stopped">STOPPED</span></div>
-            <div class="btn-group"><a href="/valve/open"><button class="on">OPEN</button></a><a href="/valve/close"><button class="off">CLOSE</button></a></div>
-            <div class="btn-group"><a href="/valve/stop" class="fullwidth"><button class="stop">STOP</button></a></div>
+            <div class="mode-row"><span id="valveModeStatus" class="badge badge-auto">AUTO</span></div>
+            <div class="btn-group">
+                <button id="valveModeBtn" class="manual" onclick="cmd('/toggleValveAuto')" style="width:100%;margin-bottom:4px">Switch to MANUAL</button>
+            </div>
+            <div class="btn-group">
+                <button class="on"  style="width:48%" onclick="cmd('/valve/open')">OPEN</button>
+                <button class="off" style="width:48%" onclick="cmd('/valve/close')">CLOSE</button>
+            </div>
+            <div class="btn-group">
+                <button class="stop" style="width:100%;margin-top:4px" onclick="cmd('/valve/stop')">STOP</button>
+            </div>
         </div>
-        <div class="card"><h2>TEMP</h2><div class="value" id="temp">--°C</div><p class="sub" id="tempStatus">--</p></div>
-        <div class="card"><h2>HUMIDITY</h2><div class="value" id="hum">--%</div><p class="sub" id="humStatus">--</p></div>
+
+        <!-- TEMP -->
+        <div class="card">
+            <h2>TEMP</h2>
+            <div class="value" id="temp">--°C</div>
+            <p class="sub" id="tempStatus">--</p>
+        </div>
+
+        <!-- HUMIDITY -->
+        <div class="card">
+            <h2>HUMIDITY</h2>
+            <div class="value" id="hum">--%</div>
+            <p class="sub" id="humStatus">--</p>
+        </div>
+
+        <!-- SOIL 1 -->
         <div class="card">
             <h2>SOIL 1</h2>
             <div class="value" id="soilVal1">--%</div>
@@ -108,6 +209,8 @@
             <p class="sub" id="soilStatus1"></p>
             <div class="fault-overlay" id="soilFault1">⚠ FAULT</div>
         </div>
+
+        <!-- SOIL 2 -->
         <div class="card">
             <h2>SOIL 2</h2>
             <div class="value" id="soilVal2">--%</div>
@@ -115,17 +218,31 @@
             <p class="sub" id="soilStatus2"></p>
             <div class="fault-overlay" id="soilFault2">⚠ FAULT</div>
         </div>
+
+        <!-- WATER TANK -->
         <div class="card fullwidth">
             <h2>WATER TANK</h2>
             <div class="tank-section">
                 <div class="tank-wrapper">
                     <div class="water" id="water" style="height:0%"></div>
-                    <div class="tank-grid"><div class="grid-line boundary"></div><div class="grid-line"></div><div class="grid-line"></div><div class="grid-line"></div><div class="grid-line boundary"></div></div>
+                    <div class="tank-grid">
+                        <div class="grid-line boundary"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line boundary"></div>
+                    </div>
                 </div>
-                <div class="labels-column"><div>FULL</div><div>3/4</div><div>1/2</div><div>1/4</div><div>EMPTY</div></div>
+                <div class="labels-column">
+                    <div>FULL</div><div>3/4</div><div>1/2</div><div>1/4</div><div>EMPTY</div>
+                </div>
             </div>
-            <div class="volume-display"><div class="volume-label">VOLUME</div><div class="volume-value" id="volume">-- L</div></div>
+            <div class="volume-display">
+                <div class="volume-label">VOLUME</div>
+                <div class="volume-value" id="volume">-- L</div>
+            </div>
         </div>
+
     </div>
 </body>
 </html>
